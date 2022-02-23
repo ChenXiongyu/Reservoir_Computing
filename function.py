@@ -92,6 +92,16 @@ def ridge_regression_matrix(f_out, reservoir, target, beta):
     return matrix.T
 
 
+def error_measures(trajectory_1, trajectory_2):
+
+    length = trajectory_2.shape[1]
+
+    index = np.array(np.linspace(0, length - 1, 50), dtype=int)
+    epsilon = np.sqrt(np.sum((trajectory_1[:, index] - trajectory_2[:, index]) ** 2) / 50)
+
+    return epsilon
+
+
 # Initial Setup
 N = 100
 D = 3
@@ -140,3 +150,5 @@ Prediction_reservoir_state = reservoir_tilt(Prediction_reservoir_state)
 
 Prediction = np.dot(W_out, Prediction_reservoir_state)
 plot_trajectory(Prediction_trajectory, Prediction)
+
+print(error_measures(Prediction_trajectory, Prediction))
