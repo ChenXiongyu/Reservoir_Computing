@@ -29,9 +29,9 @@ def plot_trajectory(trajectory_1, trajectory_2=np.array([]), save_path=''):
         plt.close()
 
 
-def fix_nonzero_matrix_construction(k, low_limit, up_limit, n_1, n_2, sr=0, scale=0):
+def fix_nonzero_matrix_construction(k, n_1, n_2, sr=0.0, scale=0.0):
 
-    matrix = np.random.uniform(low_limit, up_limit, (n_1, n_2))
+    matrix = np.random.randn(n_1, n_2)
     for row in range(n_1):
         index = np.random.choice(n_2, n_2 - k, replace=False)
         matrix[row, :][index] = 0
@@ -46,11 +46,19 @@ def fix_nonzero_matrix_construction(k, low_limit, up_limit, n_1, n_2, sr=0, scal
     return matrix
 
 
-def reservoir_derivative(w_r, w_in, r, trajectory):
-    return np.tanh(np.dot(w_r, r) + np.dot(w_in, trajectory))
+def probability_matrix_construction(sigma, n_1, n_2, scale=0.0):
+
+    matrix = np.random.randn(n_1, n_2) * scale
+    index = np.array(np.random.uniform(0, 1, (n_1, n_2)) < sigma, dtype=int)
+
+    return index * matrix
 
 
-def reservoir_state(w_r, w_in, trajectory, r_0, delta_t):
+def reservoir_derivative(gamma, w_r, w_in, r, trajectory):
+    return -gamma * r + gamma * np.tanh(np.dot(w_r, r) + np.dot(w_in, trajectory))
+
+
+def reservoir_state(gamma, w_r, w_in, trajectory, r_0, delta_t):
 
     length = trajectory.shape[1]
 
@@ -58,13 +66,22 @@ def reservoir_state(w_r, w_in, trajectory, r_0, delta_t):
     r[:, 0] = r_0.T
 
     for t in range(length):
-        derivative = reservoir_derivative(w_r, w_in, r[:, t], trajectory[:, t])
+        derivative = reservoir_derivative(gamma, w_r, w_in, r[:, t], trajectory[:, t])
         r[:, t + 1] = r[:, t] + derivative * delta_t
 
     return r[:, 1:]
 
 
-def ridge_regression_matrix(reservoir, target, beta):
+def reservoir_tilt(reservoir):
+
+    reservoir[int(np.ceil(reservoir.shape[0] / 2)):, :] = reservoir[int(np.ceil(reservoir.shape[0] / 2)):, :] ** 2
+
+    return reservoir
+
+
+def ridge_regression_matrix(f_out, reservoir, target, beta):
+
+    reservoir = f_out(reservoir)
 
     coef_matrix = np.dot(reservoir, reservoir.T)
     coef_matrix = coef_matrix + beta * np.eye(len(coef_matrix))
@@ -75,25 +92,51 @@ def ridge_regression_matrix(reservoir, target, beta):
     return matrix.T
 
 
-T_train = 10500
-T_sync = 500
-N = 200
-K = 4
+# Initial Setup
+N = 100
 D = 3
 
-W_in = fix_nonzero_matrix_construction(1, -1, 1, N, D)
-W_r = fix_nonzero_matrix_construction(K, -1, 1, N, N)
+K = 3
+Gamma = 7.7
+Sigma = 0.81
+Rou_in = 0.37
+Rou_r = 0.41
 
-Start_pos = np.array([0, 1, 2])
+
+# Initial Matrix Setup
+W_in = probability_matrix_construction(Sigma, N, D, scale=Rou_in)
+W_r = fix_nonzero_matrix_construction(K, N, N, sr=Rou_r)
+
+# Initial Trajectory Setup
 Delta_t = 0.01
-Trajectory = lorenz_63(Start_pos, T_train, Delta_t)
+Start_pos = np.array([1, 1, 1])
 
+T_discard = int(100 / Delta_t)
+T_train = int(100 / Delta_t)
+
+Trajectory = lorenz_63(Start_pos, T_discard + T_train, Delta_t)
+
+# Initial Reservoir State Setup
 R_0 = np.zeros(N)
-Reservoir_state = reservoir_state(W_r, W_in, Trajectory, R_0, Delta_t)
+Reservoir_state = reservoir_state(Gamma, W_r, W_in, Trajectory, R_0, Delta_t)
 
-Beta = 0.01
-W_out = ridge_regression_matrix(Reservoir_state, Trajectory, Beta)
+# Training
+Trajectory = Trajectory[:, T_discard:]
+Reservoir_state = Reservoir_state[:, T_discard:]
 
-Prediction = np.dot(W_out, Reservoir_state)
+Beta = 0.001
+W_out = ridge_regression_matrix(reservoir_tilt, Reservoir_state, Trajectory, Beta)
+Training = np.dot(W_out, Reservoir_state)
+plot_trajectory(Trajectory, Training)
 
-plot_trajectory(Trajectory, Prediction)
+# Prediction
+T_test = int(100 / Delta_t)
+Prediction_pos = Trajectory[:, -1]
+Prediction_trajectory = lorenz_63(Prediction_pos, T_test, Delta_t)
+
+Prediction_r_0 = Reservoir_state[:, -1]
+Prediction_reservoir_state = reservoir_state(Gamma, W_r, W_in, Prediction_trajectory, Prediction_r_0, Delta_t)
+Prediction_reservoir_state = reservoir_tilt(Prediction_reservoir_state)
+
+Prediction = np.dot(W_out, Prediction_reservoir_state)
+plot_trajectory(Prediction_trajectory, Prediction)
