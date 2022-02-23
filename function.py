@@ -62,26 +62,27 @@ def reservoir_state(gamma, w_r, w_in, trajectory, r_0, delta_t):
 
     length = trajectory.shape[1]
 
-    r = np.zeros((len(r_0), length + 1))
+    r = np.zeros((len(r_0), length))
     r[:, 0] = r_0.T
 
-    for t in range(length):
+    for t in range(length - 1):
         derivative = reservoir_derivative(gamma, w_r, w_in, r[:, t], trajectory[:, t])
         r[:, t + 1] = r[:, t] + derivative * delta_t
 
-    return r[:, 1:]
+    return r
 
 
 def reservoir_tilt(reservoir):
 
-    reservoir[int(np.ceil(reservoir.shape[0] / 2)):, :] = reservoir[int(np.ceil(reservoir.shape[0] / 2)):, :] ** 2
+    reservoir_revised = reservoir.copy()
 
-    return reservoir
+    reservoir_revised[int(np.ceil(reservoir_revised.shape[0] / 2)):, :] = \
+        reservoir_revised[int(np.ceil(reservoir_revised.shape[0] / 2)):, :] ** 2
+
+    return reservoir_revised
 
 
-def ridge_regression_matrix(f_out, reservoir, target, beta):
-
-    reservoir = f_out(reservoir)
+def ridge_regression_matrix(reservoir, target, beta):
 
     coef_matrix = np.dot(reservoir, reservoir.T)
     coef_matrix = coef_matrix + beta * np.eye(len(coef_matrix))
@@ -135,20 +136,34 @@ Trajectory = Trajectory[:, T_discard:]
 Reservoir_state = Reservoir_state[:, T_discard:]
 
 Beta = 0.001
-W_out = ridge_regression_matrix(reservoir_tilt, Reservoir_state, Trajectory, Beta)
-Training = np.dot(W_out, Reservoir_state)
+Reservoir_state_tilt = reservoir_tilt(Reservoir_state)
+W_out = ridge_regression_matrix(Reservoir_state_tilt, Trajectory, Beta)
+Training = np.dot(W_out, Reservoir_state_tilt)
 plot_trajectory(Trajectory, Training)
+print(error_measures(Trajectory, Training))
 
 # Prediction
 T_test = int(100 / Delta_t)
+
 Prediction_pos = Trajectory[:, -1]
 Prediction_trajectory = lorenz_63(Prediction_pos, T_test, Delta_t)
 
 Prediction_r_0 = Reservoir_state[:, -1]
-Prediction_reservoir_state = reservoir_state(Gamma, W_r, W_in, Prediction_trajectory, Prediction_r_0, Delta_t)
-Prediction_reservoir_state = reservoir_tilt(Prediction_reservoir_state)
+Prediction_reservoir_state = np.zeros((len(Prediction_r_0), T_test + 1))
+Prediction_reservoir_state[:, 0] = Prediction_r_0
 
-Prediction = np.dot(W_out, Prediction_reservoir_state)
+Prediction = np.zeros(Prediction_trajectory.shape)
+
+for Tick in range(T_test):
+    Prediction_reservoir_state_tilt = np.zeros(N)
+    Prediction_reservoir_state_tilt[:int(np.ceil(N / 2))] = Prediction_reservoir_state[:int(np.ceil(N / 2)), Tick]
+    Prediction_reservoir_state_tilt[int(np.ceil(N / 2)):] = Prediction_reservoir_state[int(np.ceil(N / 2)):, Tick] ** 2
+
+    Prediction[:, Tick] = np.dot(W_out, Prediction_reservoir_state_tilt)
+
+    Derivative = reservoir_derivative(Gamma, W_r, W_in, Prediction_reservoir_state[:, Tick], Prediction[:, Tick])
+    Prediction_reservoir_state[:, Tick + 1] = Prediction_reservoir_state[:, Tick] + Derivative * Delta_t
+
 plot_trajectory(Prediction_trajectory, Prediction)
 
 print(error_measures(Prediction_trajectory, Prediction))
