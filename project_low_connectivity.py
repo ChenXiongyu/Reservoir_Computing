@@ -1,3 +1,6 @@
+# Forcasting Chaotic Systems with Very Low Connectivity Reservoir Computers
+# 19 November 2019
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -104,7 +107,7 @@ def error_measures(trajectory_1, trajectory_2):
 
 
 # Initial Setup
-N = 100
+N = 1000
 D = 3
 
 K = 3
@@ -120,7 +123,7 @@ W_r = fix_nonzero_matrix_construction(K, N, N, sr=Rou_r)
 
 # Initial Trajectory Setup
 Delta_t = 0.01
-Start_pos = np.array([1, 1, 1])
+Start_pos = np.array([0.1, 0.1, 0.1])
 
 T_discard = int(100 / Delta_t)
 T_train = int(100 / Delta_t)
@@ -135,7 +138,7 @@ Reservoir_state = reservoir_state(Gamma, W_r, W_in, Trajectory, R_0, Delta_t)
 Trajectory = Trajectory[:, T_discard:]
 Reservoir_state = Reservoir_state[:, T_discard:]
 
-Beta = 0.001
+Beta = 0.01
 Reservoir_state_tilt = reservoir_tilt(Reservoir_state)
 W_out = ridge_regression_matrix(Reservoir_state_tilt, Trajectory, Beta)
 Training = np.dot(W_out, Reservoir_state_tilt)
@@ -152,17 +155,18 @@ Prediction_r_0 = Reservoir_state[:, -1]
 Prediction_reservoir_state = np.zeros((len(Prediction_r_0), T_test + 1))
 Prediction_reservoir_state[:, 0] = Prediction_r_0
 
-Prediction = np.zeros(Prediction_trajectory.shape)
-
 for Tick in range(T_test):
     Prediction_reservoir_state_tilt = np.zeros(N)
     Prediction_reservoir_state_tilt[:int(np.ceil(N / 2))] = Prediction_reservoir_state[:int(np.ceil(N / 2)), Tick]
     Prediction_reservoir_state_tilt[int(np.ceil(N / 2)):] = Prediction_reservoir_state[int(np.ceil(N / 2)):, Tick] ** 2
 
-    Prediction[:, Tick] = np.dot(W_out, Prediction_reservoir_state_tilt)
+    Prediction = np.dot(W_out, Prediction_reservoir_state_tilt)
 
-    Derivative = reservoir_derivative(Gamma, W_r, W_in, Prediction_reservoir_state[:, Tick], Prediction[:, Tick])
+    Derivative = reservoir_derivative(Gamma, W_r, W_in, Prediction_reservoir_state[:, Tick], Prediction)
     Prediction_reservoir_state[:, Tick + 1] = Prediction_reservoir_state[:, Tick] + Derivative * Delta_t
+
+Prediction_reservoir_state_tilt = reservoir_tilt(Prediction_reservoir_state)
+Prediction = np.dot(W_out, Prediction_reservoir_state_tilt)
 
 plot_trajectory(Prediction_trajectory, Prediction)
 
