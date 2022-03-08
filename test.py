@@ -89,7 +89,7 @@ def error_measures(trajectory_1, trajectory_2):
 
 
 # Initial Setup
-N = 200
+N = 1000
 D = 3
 
 A = 0.32
@@ -103,26 +103,28 @@ W_r = fix_nonzero_matrix_construction(4, N, N, sr=Rou)
 
 # Initial Trajectory Setup
 Delta_t = 0.02
-Start_pos = np.array([20, 20, 20])
+Start_pos = np.array([0.1, 0.1, 0.1])
 
-T_train = 10500
-T_train = int(T_train / Delta_t)
-Trajectory = lorenz_63(Start_pos, T_train, Delta_t)
+T_discard = 500
+T_train = 10000
+Trajectory = lorenz_63(Start_pos, T_discard + T_train, Delta_t)
 
 # Initial Reservoir State Setup
 R_0 = np.zeros(N)
 Reservoir_state = reservoir_state(W_r, W_in, Trajectory, R_0, Delta_t)
 
 # Training
-Beta = 1.9e-11
+Trajectory = Trajectory[:, T_discard:]
+Reservoir_state = Reservoir_state[:, T_discard:]
+
+Beta = 1e-9
 W_out = ridge_regression_matrix(Reservoir_state, Trajectory, Beta)
 Training = np.dot(W_out, Reservoir_state)
 plot_trajectory(Trajectory, Training)
 print(error_measures(Trajectory, Training))
 
 # Prediction
-T_test = 500
-T_test = int(T_test / Delta_t)
+T_test = 200
 
 Prediction_pos = Trajectory[:, -1]
 Prediction_trajectory = lorenz_63(Prediction_pos, T_test, Delta_t)
