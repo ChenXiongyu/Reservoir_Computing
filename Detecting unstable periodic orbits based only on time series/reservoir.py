@@ -69,11 +69,12 @@ def output_training(reservoir_state, trajectory, beta):
     w_02[:, 1::2] = w_0[:, 1::2]
 
     output = np.dot(w_01, reservoir_state.T) + np.dot(w_02, reservoir_state.T ** 2)
+    output = output.T
 
     def f_0(r):
-        return np.dot(w_01, r.T) + np.dot(w_02, r.T ** 2)
+        return (np.dot(w_01, r.T) + np.dot(w_02, r.T ** 2)).T
 
-    return output.T, f_0
+    return output, f_0
 
 
 def output_predicting(reservoir_start, trajectory_start, w_r, w_i, f_0, predicting_length):

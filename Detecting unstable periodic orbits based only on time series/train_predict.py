@@ -46,23 +46,18 @@ Reservoir_training_state = reservoir_training_function(W_r, W_i, Reservoir_train
 
 Reservoir_training_state = Reservoir_training_state[1000:, :]
 Trajectory = Trajectory[1000:, :]
-Beta = 0
+Beta = 1e-4
 
-s = Reservoir_training_state.copy()
-s[:, 1::2] = s[:, 1::2] ** 2
-w_0 = np.linalg.solve(np.dot(s.T, s) + Beta * np.eye(s.shape[1]), np.dot(s.T, Trajectory))
-w_0 = w_0.T
+Output_training, F_0 = output_training_function(Reservoir_training_state, Trajectory, Beta)
 
-w_01 = np.zeros(w_0.shape)
-w_02 = np.zeros(w_0.shape)
+plot_trajectory(Trajectory, Output_training)
 
-w_01[:, ::2] = w_0[:, ::2]
-w_02[:, 1::2] = w_0[:, 1::2]
+# Prediction
+Predicting_length = int(5000)
+Trajectory_predicting = trajectory_function(Trajectory[-1, :], Predicting_length, Delta_t)
 
-output = np.dot(w_01, Reservoir_training_state.T) + np.dot(w_02, Reservoir_training_state.T ** 2)
+Output_predicting, Reservoir_predicting_state = output_predicting_function(Reservoir_training_state[-1, :],
+                                                                           Trajectory[-1, :], W_r, W_i, F_0,
+                                                                           Predicting_length)
 
-plot_trajectory(Trajectory, output)
-
-# Output_training, F_0 = output_training_function(Reservoir_training_state, Trajectory, Beta)
-#
-# plot_trajectory(Trajectory, Output_training)
+plot_trajectory(Trajectory_predicting, Output_predicting)
