@@ -58,15 +58,15 @@ def reservoir_training(w_r, w_i, reservoir_start, trajectory):
 
 def output_training(reservoir_state, trajectory, beta):
     s = reservoir_state.copy()
-    s[:, 1::-1] = s[:, 1::-1] ** 2
+    s[:, 1::2] = s[:, 1::2] ** 2
     w_0 = np.linalg.solve(np.dot(s.T, s) + beta * np.eye(s.shape[1]), np.dot(s.T, trajectory))
     w_0 = w_0.T
 
     w_01 = np.zeros(w_0.shape)
     w_02 = np.zeros(w_0.shape)
 
-    w_01[:, ::1] = w_0[:, ::1]
-    w_02[:, 1::1] = w_0[:, 1::1]
+    w_01[:, ::2] = w_0[:, ::2]
+    w_02[:, 1::2] = w_0[:, 1::2]
 
     output = np.dot(w_01, reservoir_state.T) + np.dot(w_02, reservoir_state.T ** 2)
 
@@ -87,4 +87,4 @@ def output_predicting(reservoir_start, trajectory_start, w_r, w_i, f_0, predicti
                                         np.dot(w_i, trajectory_predicting[i - 1, :]))
         trajectory_predicting[i, :] = f_0(reservoir_state[i, :])
 
-    return trajectory_predicting
+    return trajectory_predicting, reservoir_state
