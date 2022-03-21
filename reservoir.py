@@ -70,4 +70,21 @@ def output_training(reservoir_state, trajectory, beta):
 
     output = np.dot(w_01, reservoir_state.T) + np.dot(w_02, reservoir_state.T ** 2)
 
-    return output.T
+    def f_0(r):
+        return np.dot(w_01, r.T) + np.dot(w_02, r.T ** 2)
+
+    return output.T, f_0
+
+
+def output_predicting(reservoir_start, trajectory_start, w_r, w_i, f_0, predicting_length):
+    reservoir_state = np.zeros((predicting_length, len(reservoir_start)))
+    trajectory_predicting = np.zeros((predicting_length, len(trajectory_start)))
+    reservoir_state[0, :] = reservoir_start
+    trajectory_predicting[0, :] = trajectory_start
+
+    for i in tqdm(range(1, predicting_length)):
+        reservoir_state[i, :] = np.tanh(np.dot(w_r, reservoir_state[i - 1, :]) +
+                                        np.dot(w_i, trajectory_predicting[i - 1, :]))
+        trajectory_predicting[i, :] = f_0(reservoir_state[i, :])
+
+    return trajectory_predicting
