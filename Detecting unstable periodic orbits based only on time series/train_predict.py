@@ -27,7 +27,7 @@ output_training_function = reservoir.output_training
 output_predicting_function = reservoir.output_predicting
 
 Start_pos = np.array([1, 1, 1])
-Trajectory_length = int(5000)
+Trajectory_length = int(10000)
 Delta_t = 0.001
 
 Trajectory = trajectory_function(Start_pos, Trajectory_length, Delta_t)
@@ -44,6 +44,8 @@ W_i = w_i_function(N_r, len(Start_pos), 'uniform', low=-Sigma, high=Sigma)
 Reservoir_training_start = np.zeros(N_r)
 Reservoir_training_state = reservoir_training_function(W_r, W_i, Reservoir_training_start, Trajectory)
 
+Reservoir_training_state = Reservoir_training_state[1000:, :]
+Trajectory = Trajectory[1000:, :]
 Beta = 1e-4
 Output_training, F_0 = output_training_function(Reservoir_training_state, Trajectory, Beta)
 
