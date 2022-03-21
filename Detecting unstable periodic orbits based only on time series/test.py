@@ -17,6 +17,16 @@ def plot_trajectory(trajectory_1, trajectory_2=np.array([]), save_path=''):
         plt.close()
 
 
+def rmse_value(trajectory_1, trajectory_2):
+    distance = np.sqrt(np.sum((trajectory_1 - trajectory_2) ** 2, axis=1))
+    rmse = np.mean(distance)
+    plt.figure()
+    plt.plot(distance)
+    plt.title('RMSE = %f' % rmse)
+
+    return rmse
+
+
 trajectory_function = trajectory.lorenz_system
 w_r_function = reservoir.reservoir_construction_fix_degree
 w_i_function = reservoir.reservoir_construction_average_allocate
@@ -25,6 +35,7 @@ reservoir_training_function = reservoir.reservoir_training
 output_training_function = reservoir.output_training
 
 output_predicting_function = reservoir.output_predicting
+
 
 Start_pos = np.array([1, 1, 1])
 Trajectory_length = int(5000)
@@ -53,7 +64,7 @@ Output_training, F_0 = output_training_function(Reservoir_training_state, Trajec
 plot_trajectory(Trajectory, Output_training)
 
 # Prediction
-Predicting_length = int(5000)
+Predicting_length = int(400)
 Trajectory_predicting = trajectory_function(Trajectory[-1, :], Predicting_length, Delta_t)
 
 Output_predicting, Reservoir_predicting_state = output_predicting_function(Reservoir_training_state[-1, :],
@@ -61,3 +72,4 @@ Output_predicting, Reservoir_predicting_state = output_predicting_function(Reser
                                                                            Predicting_length)
 
 plot_trajectory(Trajectory_predicting, Output_predicting)
+rmse_value(Trajectory_predicting, Output_predicting)
