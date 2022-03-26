@@ -121,7 +121,7 @@ Rou_r = 0.41
 W_in = probability_matrix_construction(Sigma, N, D, scale=Rou_in)
 W_r = fix_nonzero_matrix_construction(K, N, N, sr=Rou_r)
 
-# Initial Trajectory Setup
+# Initial Trajectory_training Setup
 Delta_t = 0.01
 Start_pos = np.array([0.1, 0.1, 0.1])
 

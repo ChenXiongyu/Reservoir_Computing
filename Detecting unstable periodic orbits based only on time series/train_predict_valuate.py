@@ -17,7 +17,7 @@ def plot_trajectory(trajectory_1, trajectory_2=np.array([]), save_path=''):
         plt.close()
 
 
-trajectory_function = trajectory.lorenz_system
+trajectory_function = trajectory.rossler_system
 w_r_function = reservoir.reservoir_construction_fix_degree
 w_i_function = reservoir.reservoir_construction_average_allocate
 

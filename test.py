@@ -101,7 +101,7 @@ Rou = A * Epsilon
 W_in = fix_nonzero_matrix_construction(1, N, D, scale=S_input)
 W_r = fix_nonzero_matrix_construction(4, N, N, sr=Rou)
 
-# Initial Trajectory Setup
+# Initial Trajectory_training Setup
 Delta_t = 0.02
 Start_pos = np.array([0.1, 0.1, 0.1])
 

@@ -36,12 +36,16 @@ output_training_function = reservoir.output_training
 
 output_predicting_function = reservoir.output_predicting
 
-
-Start_pos = np.array([1, 1, 1])
+Trajectory_num = 1
+Trajectory = {}
 Trajectory_length = int(5000)
 Delta_t = 0.01
+for i in range(Trajectory_num):
+    Start_pos = (i + 1) * 0.1 * np.array([1, 1, 1])
 
-Trajectory = trajectory_function(Start_pos, Trajectory_length, Delta_t)
+    Trajectory[i] = trajectory_function(Start_pos, Trajectory_length, Delta_t)
+Trajectory = np.hstack([Trajectory[i] for i in range(Trajectory_num)])
+Start_pos = Trajectory[0, :]
 
 N_r = 1200
 D = 3
@@ -57,7 +61,7 @@ Reservoir_training_start = np.zeros(N_r)
 Reservoir_training_state = reservoir_training_function(W_r, W_i, Reservoir_training_start, Trajectory)
 
 Reservoir_training_state = Reservoir_training_state[1000:, :]
-Trajectory = Trajectory[1000:, :]
+Trajectory = Trajectory[1000:, :3]
 Beta = 1e-4
 
 Output_training, F_0 = output_training_function(Reservoir_training_state, Trajectory, Beta)
@@ -67,10 +71,10 @@ plot_trajectory(Trajectory, Output_training)
 # Prediction
 print('Predict Process')
 Predicting_length = int(1000)
-Trajectory_predicting = trajectory_function(Trajectory[-1, :], Predicting_length, Delta_t)
+Trajectory_predicting = trajectory_function(Trajectory[-1, :3], Predicting_length, Delta_t)
 
 Output_predicting, Reservoir_predicting_state = output_predicting_function(Reservoir_training_state[-1, :],
-                                                                           Trajectory[-1, :], W_r, W_i, F_0,
+                                                                           Trajectory[-1, :3], W_r, W_i[:, :3], F_0,
                                                                            Predicting_length)
 
 plot_trajectory(Trajectory_predicting, Output_predicting)
