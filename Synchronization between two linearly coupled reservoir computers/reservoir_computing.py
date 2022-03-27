@@ -146,31 +146,30 @@ def self_predict(w_r, w_i, f_out, trajectory_predicting, reservoir_state_predict
     return output_predicting
 
 
-def coupled_predict(w_r_1, w_i_1, f_out_1, reservoir_state_predicting_1,
-                    w_r_2, w_i_2, f_out_2, reservoir_state_predicting_2,
-                    coupled_strength, trajectory_predicting, plot=True):
+def coupled_predict(w_r_1, w_i_1, f_out_1, reservoir_state_predicting_1, trajectory_predicting_1,
+                    w_r_2, w_i_2, f_out_2, reservoir_state_predicting_2, trajectory_predicting_2,
+                    coupled_strength, noise_strength):
     print('Coupled Predicting Process...')
-    output_predicting_1 = np.zeros(trajectory_predicting.shape)
-    output_predicting_2 = np.zeros(trajectory_predicting.shape)
-    output_predicting_1[0, :] = trajectory_predicting[0, :]
-    output_predicting_2[0, :] = trajectory_predicting[0, :]
+    output_predicting_1 = np.zeros(trajectory_predicting_1.shape)
+    output_predicting_2 = np.zeros(trajectory_predicting_2.shape)
+    output_predicting_1[0, :] = trajectory_predicting_1[0, :]
+    output_predicting_2[0, :] = trajectory_predicting_2[0, :]
 
-    for i in tqdm(range(1, len(trajectory_predicting))):
+    for i in tqdm(range(1, len(trajectory_predicting_1))):
         reservoir_state_predicting_1[i, :] = \
             np.tanh(np.dot(w_r_1, reservoir_state_predicting_1[i - 1, :]) +
                     np.dot(w_i_1,
                            coupled_strength * output_predicting_2[i - 1, :] +
-                           (1 - coupled_strength) * output_predicting_1[i - 1, :]))
+                           (1 - coupled_strength) * output_predicting_1[i - 1, :] +
+                           noise_strength * np.random.rand(3)))
         reservoir_state_predicting_2[i, :] = \
             np.tanh(np.dot(w_r_2, reservoir_state_predicting_2[i - 1, :]) +
                     np.dot(w_i_2,
                            coupled_strength * output_predicting_1[i - 1, :] +
-                           (1 - coupled_strength) * output_predicting_2[i - 1, :]))
+                           (1 - coupled_strength) * output_predicting_2[i - 1, :] +
+                           noise_strength * np.random.rand(3)))
 
         output_predicting_1[i, :] = f_out_1(reservoir_state_predicting_1[i, :])
         output_predicting_2[i, :] = f_out_2(reservoir_state_predicting_2[i, :])
-
-    if plot:
-        plot_trajectory(output_predicting_1, output_predicting_2)
 
     return output_predicting_1, output_predicting_2
