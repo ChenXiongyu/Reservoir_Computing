@@ -10,8 +10,9 @@ Alpha = 0.27
 Beta = 1e-4
 
 # Mode
-Self_predicting = False
-Coupled_predicting = True
+Self_predicting = True
+Teacher = True
+Coupled_predicting = not Self_predicting
 
 if Self_predicting:
     # Trajectory for Training
@@ -21,8 +22,12 @@ if Self_predicting:
     Trajectory_training = trajectory_function(Start_pos, Training_time, 0.01)
 
     # Train Process
-    W_r, W_i, F_out, Reservoir_state_training = rc.train(N, D, Rou, Sigma, Alpha, Beta, Trajectory_training,
-                                                         plot=True)
+    if not Teacher:
+        W_r, W_i, F_out, Reservoir_state_training = rc.train(N, D, Rou, Sigma, Alpha, Beta, Trajectory_training,
+                                                             plot=True)
+    else:
+        W_r, W_i, F_out, Reservoir_state_training = rc.train_teacher(N, D, Rou, Sigma, Alpha, Beta,
+                                                                     Trajectory_training, plot=True)
 
     # Trajectory for Predicting
     Predicting_time = int(5000)
@@ -32,14 +37,18 @@ if Self_predicting:
     Reservoir_state_predicting = np.zeros((Predicting_time, N))
     Reservoir_state_predicting[0, :] = Reservoir_state_training[-1, :]
 
-    Output_predicting = rc.self_predict(W_r, W_i, F_out, Trajectory_predicting, Reservoir_state_predicting,
-                                        plot=True)
+    if not Teacher:
+        Output_predicting = rc.self_predict(W_r, W_i, F_out, Trajectory_predicting, Reservoir_state_predicting,
+                                            plot=True)
+    else:
+        Output_predicting = rc.self_predict_teacher(W_r, W_i, F_out, Trajectory_predicting,
+                                                    Reservoir_state_predicting, plot=True)
 
 if Coupled_predicting:
     # Trajectory for Training
     trajectory_function = rc.rossler_system
     Training_time = int(5000)
-    Start_pos_training_1 = np.array([1, 1, 1])
+    Start_pos_training_1 = np.array([1.5, 1.5, 1.5])
     Trajectory_training_1 = trajectory_function(Start_pos_training_1, Training_time, 0.01)
     Start_pos_training_2 = np.array([0.5, 0.5, 0.5])
     Trajectory_training_2 = trajectory_function(Start_pos_training_2, Training_time, 0.01)
@@ -57,7 +66,7 @@ if Coupled_predicting:
     Trajectory_predicting_2 = trajectory_function(Start_pos_predicting_2, Predicting_time, 0.01)
 
     # Coupled Predicting Process
-    Coupled_strength = 0.5
+    Coupled_strength = 1
     Noise_strength = 0
     Reservoir_state_predicting_1 = np.zeros((Predicting_time, N))
     Reservoir_state_predicting_1[0, :] = Reservoir_state_training_1[-1, :]

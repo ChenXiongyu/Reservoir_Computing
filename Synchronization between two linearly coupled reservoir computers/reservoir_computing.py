@@ -173,3 +173,61 @@ def coupled_predict(w_r_1, w_i_1, f_out_1, reservoir_state_predicting_1, traject
         output_predicting_2[i, :] = f_out_2(reservoir_state_predicting_2[i, :])
 
     return output_predicting_1, output_predicting_2
+
+
+def train_teacher(n, d, rou, sigma, alpha, beta, trajectory_training, plot=True):
+    print('Train (Teacher) Process...')
+    w_r_function = reservoir_construction_fix_degree
+    w_i_function = reservoir_construction_average_allocate
+
+    w_r = w_r_function(n, n, 'uniform', d, sr=rou,  low=0.0, high=alpha)
+    w_i = w_i_function(n, 3, 'uniform', low=-sigma, high=sigma)
+
+    reservoir_start = np.zeros(n)
+    reservoir_state_training = np.zeros((len(trajectory_training), len(reservoir_start)))
+    reservoir_state_training[0, :] = reservoir_start
+
+    for i in tqdm(range(1, len(trajectory_training))):
+        reservoir_state_training[i, :] = np.tanh(np.dot(w_r, reservoir_state_training[i - 1, :]) +
+                                                 np.dot(w_i, trajectory_training[i - 1, :]))
+
+    x = np.hstack((trajectory_training[:-1, :], reservoir_state_training[1:, :]))[999:, :]
+    y = trajectory_training[1000:, :]
+
+    s = x.copy()
+    s[:, 1::2] = s[:, 1::2] ** 2
+    w_0 = np.linalg.solve(np.dot(s.T, s) + beta * np.eye(s.shape[1]), np.dot(s.T, y))
+    w_0 = w_0.T
+
+    w_01 = np.zeros(w_0.shape)
+    w_02 = np.zeros(w_0.shape)
+
+    w_01[:, ::2] = w_0[:, ::2]
+    w_02[:, 1::2] = w_0[:, 1::2]
+
+    output_training = np.dot(w_01, x.T) + np.dot(w_02, x.T ** 2)
+    output_training = output_training.T
+
+    def f_out(r):
+        return (np.dot(w_01, r.T) + np.dot(w_02, r.T ** 2)).T
+
+    if plot:
+        plot_trajectory(y, output_training)
+
+    return w_r, w_i, f_out, reservoir_state_training
+
+
+def self_predict_teacher(w_r, w_i, f_out, trajectory_predicting, reservoir_state_predicting, plot=True):
+    print('Self Predicting (Teacher) Process...')
+    output_predicting = np.zeros(trajectory_predicting.shape)
+    output_predicting[0, :] = trajectory_predicting[0, :]
+
+    for i in tqdm(range(1, len(trajectory_predicting))):
+        reservoir_state_predicting[i, :] = np.tanh(np.dot(w_r, reservoir_state_predicting[i - 1, :]) +
+                                                   np.dot(w_i, output_predicting[i - 1, :]))
+        output_predicting[i, :] = f_out(np.append(output_predicting[i - 1, :], reservoir_state_predicting[i, :]))
+
+    if plot:
+        plot_trajectory(trajectory_predicting, output_predicting)
+
+    return output_predicting
