@@ -18,7 +18,7 @@ Trajectory_training = trajectory_function(Start_pos, Training_time, 0.01)
 # Train Process
 W_r, W_i, F_out, Reservoir_state_training = \
     rc.train(N, D, Rou, Sigma, Alpha, Beta, Trajectory_training,
-             plot=True, basis_function_1=np.sin, basis_function_2=np.cos)
+             plot=False, basis_function_1=np.sin, basis_function_2=np.cos)
 
 # Trajectory for Predicting
 Predicting_time = int(5000)
@@ -30,3 +30,6 @@ Reservoir_state_predicting[0, :] = Reservoir_state_training[-1, :]
 
 Output_predicting = rc.self_predict(W_r, W_i, F_out, Trajectory_predicting, Reservoir_state_predicting,
                                     plot=True)
+
+# Valuation
+rc.synchronization_error(Trajectory_predicting, Output_predicting)

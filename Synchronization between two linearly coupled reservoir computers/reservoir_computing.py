@@ -229,3 +229,16 @@ def self_predict_teacher(w_r, w_i, f_out, trajectory_predicting, reservoir_state
         plot_trajectory(trajectory_predicting, output_predicting)
 
     return output_predicting
+
+
+def synchronization_error(trajectory_1, trajectory_2, time_period=0):
+    if not time_period:
+        distance = np.sqrt(np.sum((trajectory_1 - trajectory_2) ** 2, axis=1))
+    else:
+        distance = np.sqrt(np.sum((trajectory_1[:time_period, :] - trajectory_2[:time_period, :]) ** 2, axis=1))
+    rmse = np.mean(distance)
+    plt.figure()
+    plt.plot(distance)
+    plt.title('RMSE = %f' % rmse)
+
+    return rmse
