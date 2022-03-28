@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import basis_function as bf
 from tqdm import tqdm
 
 
@@ -88,7 +89,8 @@ def plot_trajectory(trajectory_1, trajectory_2=np.array([]), save_path=''):
         plt.close()
 
 
-def train(n, d, rou, sigma, alpha, beta, trajectory_training, activation_function=np.tanh, plot=True):
+def train(n, d, rou, sigma, alpha, beta, trajectory_training, plot=True,
+          activation_function=np.tanh, basis_function_1=bf.original, basis_function_2=np.square):
     print('Train Process...')
     w_r_function = reservoir_construction_fix_degree
     w_i_function = reservoir_construction_average_allocate
@@ -108,7 +110,8 @@ def train(n, d, rou, sigma, alpha, beta, trajectory_training, activation_functio
     y = trajectory_training[1000:, :]
 
     s = x.copy()
-    s[:, 1::2] = s[:, 1::2] ** 2
+    s[:, ::2] = basis_function_1(s[:, ::2])
+    s[:, 1::2] = basis_function_2(s[:, 1::2])
     w_0 = np.linalg.solve(np.dot(s.T, s) + beta * np.eye(s.shape[1]), np.dot(s.T, y))
     w_0 = w_0.T
 
@@ -118,11 +121,11 @@ def train(n, d, rou, sigma, alpha, beta, trajectory_training, activation_functio
     w_01[:, ::2] = w_0[:, ::2]
     w_02[:, 1::2] = w_0[:, 1::2]
 
-    output_training = np.dot(w_01, x.T) + np.dot(w_02, x.T ** 2)
+    output_training = np.dot(w_01, basis_function_1(x.T)) + np.dot(w_02, basis_function_2(x.T))
     output_training = output_training.T
 
     def f_out(r):
-        return (np.dot(w_01, r.T) + np.dot(w_02, r.T ** 2)).T
+        return (np.dot(w_01, basis_function_1(r.T)) + np.dot(w_02, basis_function_2(r.T))).T
 
     if plot:
         plot_trajectory(y, output_training)
@@ -196,21 +199,14 @@ def train_teacher(n, d, rou, sigma, alpha, beta, trajectory_training, activation
     y = trajectory_training[1000:, :]
 
     s = x.copy()
-    s[:, 1::2] = s[:, 1::2] ** 2
     w_0 = np.linalg.solve(np.dot(s.T, s) + beta * np.eye(s.shape[1]), np.dot(s.T, y))
     w_0 = w_0.T
 
-    w_01 = np.zeros(w_0.shape)
-    w_02 = np.zeros(w_0.shape)
-
-    w_01[:, ::2] = w_0[:, ::2]
-    w_02[:, 1::2] = w_0[:, 1::2]
-
-    output_training = np.dot(w_01, x.T) + np.dot(w_02, x.T ** 2)
+    output_training = np.dot(w_0, x.T)
     output_training = output_training.T
 
     def f_out(r):
-        return (np.dot(w_01, r.T) + np.dot(w_02, r.T ** 2)).T
+        return (np.dot(w_0, r.T)).T
 
     if plot:
         plot_trajectory(y, output_training)
