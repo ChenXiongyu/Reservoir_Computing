@@ -88,7 +88,7 @@ def plot_trajectory(trajectory_1, trajectory_2=np.array([]), save_path=''):
         plt.close()
 
 
-def train(n, d, rou, sigma, alpha, beta, trajectory_training, plot=True):
+def train(n, d, rou, sigma, alpha, beta, trajectory_training, activation_function=np.tanh, plot=True):
     print('Train Process...')
     w_r_function = reservoir_construction_fix_degree
     w_i_function = reservoir_construction_average_allocate
@@ -101,8 +101,8 @@ def train(n, d, rou, sigma, alpha, beta, trajectory_training, plot=True):
     reservoir_state_training[0, :] = reservoir_start
 
     for i in tqdm(range(1, len(trajectory_training))):
-        reservoir_state_training[i, :] = np.tanh(np.dot(w_r, reservoir_state_training[i - 1, :]) +
-                                                 np.dot(w_i, trajectory_training[i - 1, :]))
+        reservoir_state_training[i, :] = activation_function(np.dot(w_r, reservoir_state_training[i - 1, :]) +
+                                                             np.dot(w_i, trajectory_training[i - 1, :]))
 
     x = reservoir_state_training[1000:, :]
     y = trajectory_training[1000:, :]
@@ -130,14 +130,15 @@ def train(n, d, rou, sigma, alpha, beta, trajectory_training, plot=True):
     return w_r, w_i, f_out, reservoir_state_training
 
 
-def self_predict(w_r, w_i, f_out, trajectory_predicting, reservoir_state_predicting, plot=True):
+def self_predict(w_r, w_i, f_out, trajectory_predicting, reservoir_state_predicting,
+                 activation_function=np.tanh, plot=True):
     print('Self Predicting Process...')
     output_predicting = np.zeros(trajectory_predicting.shape)
     output_predicting[0, :] = trajectory_predicting[0, :]
 
     for i in tqdm(range(1, len(trajectory_predicting))):
-        reservoir_state_predicting[i, :] = np.tanh(np.dot(w_r, reservoir_state_predicting[i - 1, :]) +
-                                                   np.dot(w_i, output_predicting[i - 1, :]))
+        reservoir_state_predicting[i, :] = activation_function(np.dot(w_r, reservoir_state_predicting[i - 1, :]) +
+                                                               np.dot(w_i, output_predicting[i - 1, :]))
         output_predicting[i, :] = f_out(reservoir_state_predicting[i, :])
 
     if plot:
@@ -148,7 +149,7 @@ def self_predict(w_r, w_i, f_out, trajectory_predicting, reservoir_state_predict
 
 def coupled_predict(w_r_1, w_i_1, f_out_1, reservoir_state_predicting_1, trajectory_predicting_1,
                     w_r_2, w_i_2, f_out_2, reservoir_state_predicting_2, trajectory_predicting_2,
-                    coupled_strength, noise_strength):
+                    coupled_strength, noise_strength, activation_function=np.tanh):
     print('Coupled Predicting Process...')
     output_predicting_1 = np.zeros(trajectory_predicting_1.shape)
     output_predicting_2 = np.zeros(trajectory_predicting_2.shape)
@@ -157,17 +158,17 @@ def coupled_predict(w_r_1, w_i_1, f_out_1, reservoir_state_predicting_1, traject
 
     for i in tqdm(range(1, len(trajectory_predicting_1))):
         reservoir_state_predicting_1[i, :] = \
-            np.tanh(np.dot(w_r_1, reservoir_state_predicting_1[i - 1, :]) +
-                    np.dot(w_i_1,
-                           coupled_strength * output_predicting_2[i - 1, :] +
-                           (1 - coupled_strength) * output_predicting_1[i - 1, :] +
-                           noise_strength * np.random.rand(3)))
+            activation_function(np.dot(w_r_1, reservoir_state_predicting_1[i - 1, :]) +
+                                np.dot(w_i_1,
+                                       coupled_strength * output_predicting_2[i - 1, :] +
+                                       (1 - coupled_strength) * output_predicting_1[i - 1, :] +
+                                       noise_strength * np.random.rand(3)))
         reservoir_state_predicting_2[i, :] = \
-            np.tanh(np.dot(w_r_2, reservoir_state_predicting_2[i - 1, :]) +
-                    np.dot(w_i_2,
-                           coupled_strength * output_predicting_1[i - 1, :] +
-                           (1 - coupled_strength) * output_predicting_2[i - 1, :] +
-                           noise_strength * np.random.rand(3)))
+            activation_function(np.dot(w_r_2, reservoir_state_predicting_2[i - 1, :]) +
+                                np.dot(w_i_2,
+                                       coupled_strength * output_predicting_1[i - 1, :] +
+                                       (1 - coupled_strength) * output_predicting_2[i - 1, :] +
+                                       noise_strength * np.random.rand(3)))
 
         output_predicting_1[i, :] = f_out_1(reservoir_state_predicting_1[i, :])
         output_predicting_2[i, :] = f_out_2(reservoir_state_predicting_2[i, :])
@@ -175,7 +176,7 @@ def coupled_predict(w_r_1, w_i_1, f_out_1, reservoir_state_predicting_1, traject
     return output_predicting_1, output_predicting_2
 
 
-def train_teacher(n, d, rou, sigma, alpha, beta, trajectory_training, plot=True):
+def train_teacher(n, d, rou, sigma, alpha, beta, trajectory_training, activation_function=np.tanh, plot=True):
     print('Train (Teacher) Process...')
     w_r_function = reservoir_construction_fix_degree
     w_i_function = reservoir_construction_average_allocate
@@ -188,8 +189,8 @@ def train_teacher(n, d, rou, sigma, alpha, beta, trajectory_training, plot=True)
     reservoir_state_training[0, :] = reservoir_start
 
     for i in tqdm(range(1, len(trajectory_training))):
-        reservoir_state_training[i, :] = np.tanh(np.dot(w_r, reservoir_state_training[i - 1, :]) +
-                                                 np.dot(w_i, trajectory_training[i - 1, :]))
+        reservoir_state_training[i, :] = activation_function(np.dot(w_r, reservoir_state_training[i - 1, :]) +
+                                                             np.dot(w_i, trajectory_training[i - 1, :]))
 
     x = np.hstack((trajectory_training[:-1, :], reservoir_state_training[1:, :]))[999:, :]
     y = trajectory_training[1000:, :]
@@ -217,14 +218,15 @@ def train_teacher(n, d, rou, sigma, alpha, beta, trajectory_training, plot=True)
     return w_r, w_i, f_out, reservoir_state_training
 
 
-def self_predict_teacher(w_r, w_i, f_out, trajectory_predicting, reservoir_state_predicting, plot=True):
+def self_predict_teacher(w_r, w_i, f_out, trajectory_predicting, reservoir_state_predicting,
+                         activation_function=np.tanh, plot=True):
     print('Self Predicting (Teacher) Process...')
     output_predicting = np.zeros(trajectory_predicting.shape)
     output_predicting[0, :] = trajectory_predicting[0, :]
 
     for i in tqdm(range(1, len(trajectory_predicting))):
-        reservoir_state_predicting[i, :] = np.tanh(np.dot(w_r, reservoir_state_predicting[i - 1, :]) +
-                                                   np.dot(w_i, output_predicting[i - 1, :]))
+        reservoir_state_predicting[i, :] = activation_function(np.dot(w_r, reservoir_state_predicting[i - 1, :]) +
+                                                               np.dot(w_i, output_predicting[i - 1, :]))
         output_predicting[i, :] = f_out(np.append(output_predicting[i - 1, :], reservoir_state_predicting[i, :]))
 
     if plot:
