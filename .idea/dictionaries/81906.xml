@@ -2,6 +2,8 @@
   <dictionary name="81906">
     <words>
       <w>lsqr</w>
+      <w>mape</w>
+      <w>nrmse</w>
       <w>rmse</w>
       <w>rossler</w>
     </words>

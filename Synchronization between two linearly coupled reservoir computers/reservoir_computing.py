@@ -231,14 +231,21 @@ def self_predict_teacher(w_r, w_i, f_out, trajectory_predicting, reservoir_state
     return output_predicting
 
 
-def synchronization_error(trajectory_1, trajectory_2, time_period=0):
-    if not time_period:
-        distance = np.sqrt(np.sum((trajectory_1 - trajectory_2) ** 2, axis=1))
-    else:
-        distance = np.sqrt(np.sum((trajectory_1[:time_period, :] - trajectory_2[:time_period, :]) ** 2, axis=1))
-    rmse = np.mean(distance)
-    plt.figure()
-    plt.plot(distance)
-    plt.title('RMSE = %f' % rmse)
+def error_evaluate(trajectory_target, trajectory_output, time_period=0, plot=True):
+    difference = trajectory_target - trajectory_output
+    if time_period == 0:
+        time_period = min(len(trajectory_target), len(trajectory_output))
 
-    return rmse
+    distance = np.sqrt(np.sum(difference[:time_period, :] ** 2, axis=1))
+
+    rmse = np.sqrt(np.mean(np.sum(difference[:time_period, :] ** 2, axis=1)))
+    nrmse = np.sqrt(np.sum(difference[:time_period, :] ** 2) /
+                    np.sum((trajectory_target - np.mean(trajectory_target, axis=0))[:time_period, :] ** 2))
+    mape = float(np.mean(distance / np.sqrt(np.sum(trajectory_target[:time_period, :] ** 2, axis=1))))
+
+    if plot:
+        plt.figure()
+        plt.plot(distance)
+        plt.text(0, max(distance) / 2, 'RMSE = %.2f\nNRMSE = %.2f\nMAPE = %.2f' % (rmse, nrmse, mape))
+
+    return rmse, nrmse, mape

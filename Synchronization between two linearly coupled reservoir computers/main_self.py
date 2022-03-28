@@ -32,4 +32,4 @@ Output_predicting = rc.self_predict(W_r, W_i, F_out, Trajectory_predicting, Rese
                                     plot=True)
 
 # Valuation
-rc.synchronization_error(Trajectory_predicting, Output_predicting)
+rc.error_evaluate(Trajectory_predicting, Output_predicting)
