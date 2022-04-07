@@ -17,7 +17,7 @@ Sigma = 1
 Rou = 0.15
 
 # Activation Function
-Activation_function = ac.relu
+Activation_function = ac.tanh
 
 # Trajectory for Training
 Start_pos = list(np.random.rand(3))
@@ -27,7 +27,7 @@ Time_training, Trajectory_training = data.lorenz(length=5555, sample=0.01, x0=St
 # Train Process
 W_r, W_i, F_out, Reservoir_state_training, Output_training = \
     rc.train(N, D, Rou, Sigma, Alpha, Beta, Trajectory_training, plot=False,
-             basis_function_1=bf.original, basis_function_2=np.square,
+             basis_function_1=bf.original, basis_function_2=bf.original,
              activation_function=Activation_function)
 
 # Trajectory for Predicting
