@@ -153,13 +153,12 @@ def self_predict(w_r, w_i, f_out, trajectory_predicting, reservoir_state_predict
 def coupled_predict(w_r_1, w_i_1, f_out_1, reservoir_state_predicting_1, trajectory_predicting_1,
                     w_r_2, w_i_2, f_out_2, reservoir_state_predicting_2, trajectory_predicting_2,
                     coupled_strength, noise_strength, activation_function=np.tanh):
-    print('Coupled Predicting Process...')
     output_predicting_1 = np.zeros(trajectory_predicting_1.shape)
     output_predicting_2 = np.zeros(trajectory_predicting_2.shape)
     output_predicting_1[0, :] = trajectory_predicting_1[0, :]
     output_predicting_2[0, :] = trajectory_predicting_2[0, :]
 
-    for i in tqdm(range(1, len(trajectory_predicting_1))):
+    for i in range(1, len(trajectory_predicting_1)):
         reservoir_state_predicting_1[i, :] = \
             activation_function(np.dot(w_r_1, reservoir_state_predicting_1[i - 1, :]) +
                                 np.dot(w_i_1,
@@ -231,21 +230,21 @@ def self_predict_teacher(w_r, w_i, f_out, trajectory_predicting, reservoir_state
     return output_predicting
 
 
-def error_evaluate(trajectory_target, trajectory_output, time, time_period=0, plot=True):
+def error_evaluate(trajectory_target, trajectory_output, time, time_start=0, time_end=0, plot=True):
     difference = trajectory_target - trajectory_output
-    if time_period == 0:
-        time_period = min(len(trajectory_target), len(trajectory_output))
+    if time_end == 0:
+        time_end = min(len(trajectory_target), len(trajectory_output))
 
-    distance = np.sqrt(np.sum(difference[:time_period, :] ** 2, axis=1))
+    distance = np.sqrt(np.sum(difference[time_start:time_end, :] ** 2, axis=1))
 
-    rmse = np.sqrt(np.mean(np.sum(difference[:time_period, :] ** 2, axis=1)))
-    nrmse = np.sqrt(np.sum(difference[:time_period, :] ** 2) /
-                    np.sum((trajectory_target - np.mean(trajectory_target, axis=0))[:time_period, :] ** 2))
-    mape = float(np.mean(distance / np.sqrt(np.sum(trajectory_target[:time_period, :] ** 2, axis=1))))
+    rmse = np.sqrt(np.mean(np.sum(difference[time_start:time_end, :] ** 2, axis=1)))
+    nrmse = np.sqrt(np.sum(difference[time_start:time_end, :] ** 2) /
+                    np.sum((trajectory_target - np.mean(trajectory_target, axis=0))[time_start:time_end, :] ** 2))
+    mape = float(np.mean(distance / np.sqrt(np.sum(trajectory_target[time_start:time_end, :] ** 2, axis=1))))
 
     if plot:
         plt.figure()
-        plt.plot(time, distance)
+        plt.plot(time[time_start:time_end], distance)
         plt.text(0, max(distance) / 2, 'RMSE = %.2f\nNRMSE = %.2f\nMAPE = %.2f' % (rmse, nrmse, mape))
 
     return distance, rmse, nrmse, mape
