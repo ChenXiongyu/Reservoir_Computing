@@ -1,5 +1,6 @@
 import numpy as np
 import reservoir_computing as rc
+import basis_function as bf
 
 # Parameters
 N = 1200
@@ -18,10 +19,10 @@ Trajectory_training = trajectory_function(Start_pos, Training_time, 0.01)
 # Train Process
 W_r, W_i, F_out, Reservoir_state_training = \
     rc.train(N, D, Rou, Sigma, Alpha, Beta, Trajectory_training,
-             plot=False, basis_function_1=np.sin, basis_function_2=np.cos)
+             plot=False, basis_function_1=bf.original, basis_function_2=bf.original)
 
 # Trajectory for Predicting
-Predicting_time = int(5000)
+Predicting_time = int(1000)
 Trajectory_predicting = trajectory_function(Trajectory_training[-1, :], Predicting_time, 0.01)
 
 # Self Predicting Process
@@ -32,4 +33,4 @@ Output_predicting = rc.self_predict(W_r, W_i, F_out, Trajectory_predicting, Rese
                                     plot=True)
 
 # Valuation
-rc.error_evaluate(Trajectory_predicting, Output_predicting)
+Distance, RMSE, NRMSE, MAPE = rc.error_evaluate(Trajectory_predicting, Output_predicting)

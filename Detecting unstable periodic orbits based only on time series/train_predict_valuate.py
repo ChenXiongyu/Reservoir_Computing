@@ -35,7 +35,7 @@ def train(trajectory_information, parameter_information, plot=True):
     traj = trajectory_function(start_pos, trajectory_length, delta_t)
 
     n_r = parameter_information['n_r']
-    d = parameter_information['d']
+    d = parameter_information['Divergence']
     rou = parameter_information['rou']
     alpha = parameter_information['alpha']
 

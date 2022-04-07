@@ -3,14 +3,14 @@ import train_predict_valuate
 
 # Train
 Trajectory_information = {'start': np.array([1, 1, 1]), 'length': int(5000), 'tick': 0.01}
-Parameter = {'n_r': 1200, 'd': 3, 'rou': 0.6, 'alpha': 0.27, 'sigma': 1, 'beta': 1e-4}
+Parameter = {'n_r': 1200, 'Divergence': 3, 'rou': 0.6, 'alpha': 0.27, 'sigma': 1, 'beta': 1e-4}
 
 Trajectory_1, Output_training_1, Reservoir_training_state_1, F_0_1, W_r_1, W_i_1 = \
     train_predict_valuate.train(Trajectory_information, Parameter, plot=True)
 RMSE_training = train_predict_valuate.rmse_value(Trajectory_1, Output_training_1)
 
 Trajectory_information = {'start': np.array([0.5, 0.5, 0.5]), 'length': int(5000), 'tick': 0.01}
-Parameter = {'n_r': 1200, 'd': 3, 'rou': 0.6, 'alpha': 0.27, 'sigma': 1, 'beta': 1e-4}
+Parameter = {'n_r': 1200, 'Divergence': 3, 'rou': 0.6, 'alpha': 0.27, 'sigma': 1, 'beta': 1e-4}
 
 Trajectory_2, Output_training_2, Reservoir_training_state_2, F_0_2, W_r_2, W_i_2 = \
     train_predict_valuate.train(Trajectory_information, Parameter, plot=True)

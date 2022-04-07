@@ -248,4 +248,4 @@ def error_evaluate(trajectory_target, trajectory_output, time_period=0, plot=Tru
         plt.plot(distance)
         plt.text(0, max(distance) / 2, 'RMSE = %.2f\nNRMSE = %.2f\nMAPE = %.2f' % (rmse, nrmse, mape))
 
-    return rmse, nrmse, mape
+    return distance, rmse, nrmse, mape

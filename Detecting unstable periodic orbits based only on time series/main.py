@@ -3,7 +3,7 @@ import train_predict_valuate
 
 # Train
 Trajectory_information = {'start': np.array([1, 1, 1]), 'length': int(5000), 'tick': 0.01}
-Parameter = {'n_r': 1200, 'd': 3, 'rou': 1.8, 'alpha': 0.27, 'sigma': 0.1, 'beta': 1e-4}
+Parameter = {'n_r': 1200, 'Divergence': 3, 'rou': 1.8, 'alpha': 0.27, 'sigma': 0.1, 'beta': 1e-4}
 
 Trajectory, Output_training, Reservoir_training_state, F_0, W_r, W_i = \
     train_predict_valuate.train(Trajectory_information, Parameter, plot=True)
