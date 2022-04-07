@@ -2,6 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import basis_function as bf
 from tqdm import tqdm
+from nolitsa import lyapunov
+from outer_function import poly_fit
 
 
 def lorenz_system(start_pos, trajectory_length, delta_t):
@@ -248,3 +250,10 @@ def error_evaluate(trajectory_target, trajectory_output, time, time_start=0, tim
         plt.text(0, max(distance) / 2, 'RMSE = %.2f\nNRMSE = %.2f\nMAPE = %.2f' % (rmse, nrmse, mape))
 
     return distance, rmse, nrmse, mape
+
+
+def lle_lorenz(trajectory, dt=0.01, maxt=250, window=30):
+    divergence = lyapunov.mle(trajectory, maxt=maxt, window=window)
+    max_t = np.arange(maxt) * dt
+    coef = poly_fit(max_t, divergence, 1)[0]
+    return coef
