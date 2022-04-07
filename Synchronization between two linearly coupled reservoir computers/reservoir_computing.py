@@ -11,7 +11,7 @@ def lorenz_system(start_pos, trajectory_length, delta_t):
 
     for t in range(trajectory_length - 1):
         derivative = np.array([10 * (trajectory[t, 1] - trajectory[t, 0]),
-                               trajectory[t, 0] * (28 - 10 * trajectory[t, 2]) - trajectory[t, 1],
+                               trajectory[t, 0] * (28 - trajectory[t, 2]) - trajectory[t, 1],
                                trajectory[t, 0] * trajectory[t, 1] - trajectory[t, 2]])
         trajectory[t + 1, :] = trajectory[t, :] + derivative * delta_t
 
@@ -91,7 +91,7 @@ def plot_trajectory(trajectory_1, trajectory_2=np.array([]), save_path=''):
 
 def train(n, d, rou, sigma, alpha, beta, trajectory_training, plot=True,
           activation_function=np.tanh, basis_function_1=bf.original, basis_function_2=np.square):
-    print('Train Process...')
+    # print('Train Process...')
     w_r_function = reservoir_construction_fix_degree
     w_i_function = reservoir_construction_average_allocate
 
@@ -102,7 +102,7 @@ def train(n, d, rou, sigma, alpha, beta, trajectory_training, plot=True,
     reservoir_state_training = np.zeros((len(trajectory_training), len(reservoir_start)))
     reservoir_state_training[0, :] = reservoir_start
 
-    for i in tqdm(range(1, len(trajectory_training))):
+    for i in range(1, len(trajectory_training)):
         reservoir_state_training[i, :] = activation_function(np.dot(w_r, reservoir_state_training[i - 1, :]) +
                                                              np.dot(w_i, trajectory_training[i - 1, :]))
 
@@ -130,16 +130,16 @@ def train(n, d, rou, sigma, alpha, beta, trajectory_training, plot=True,
     if plot:
         plot_trajectory(y, output_training)
 
-    return w_r, w_i, f_out, reservoir_state_training
+    return w_r, w_i, f_out, reservoir_state_training, output_training
 
 
 def self_predict(w_r, w_i, f_out, trajectory_predicting, reservoir_state_predicting,
                  activation_function=np.tanh, plot=True):
-    print('Self Predicting Process...')
+    # print('Self Predicting Process...')
     output_predicting = np.zeros(trajectory_predicting.shape)
     output_predicting[0, :] = trajectory_predicting[0, :]
 
-    for i in tqdm(range(1, len(trajectory_predicting))):
+    for i in range(1, len(trajectory_predicting)):
         reservoir_state_predicting[i, :] = activation_function(np.dot(w_r, reservoir_state_predicting[i - 1, :]) +
                                                                np.dot(w_i, output_predicting[i - 1, :]))
         output_predicting[i, :] = f_out(reservoir_state_predicting[i, :])
@@ -231,7 +231,7 @@ def self_predict_teacher(w_r, w_i, f_out, trajectory_predicting, reservoir_state
     return output_predicting
 
 
-def error_evaluate(trajectory_target, trajectory_output, time_period=0, plot=True):
+def error_evaluate(trajectory_target, trajectory_output, time, time_period=0, plot=True):
     difference = trajectory_target - trajectory_output
     if time_period == 0:
         time_period = min(len(trajectory_target), len(trajectory_output))
@@ -245,7 +245,7 @@ def error_evaluate(trajectory_target, trajectory_output, time_period=0, plot=Tru
 
     if plot:
         plt.figure()
-        plt.plot(distance)
+        plt.plot(time, distance)
         plt.text(0, max(distance) / 2, 'RMSE = %.2f\nNRMSE = %.2f\nMAPE = %.2f' % (rmse, nrmse, mape))
 
     return distance, rmse, nrmse, mape

@@ -4,8 +4,10 @@
       <w>lsqr</w>
       <w>mape</w>
       <w>nrmse</w>
+      <w>prelu</w>
       <w>rmse</w>
       <w>rossler</w>
+      <w>tanh</w>
     </words>
   </dictionary>
 </component>

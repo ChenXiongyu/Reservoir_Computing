@@ -27,7 +27,7 @@ def lec_system(t):
     # x,y,z = Max_t[:3]             # n=3
     u = t[3:12].reshape([3, 3])  # size n square matrix, sub-array from n to n+n*n=n*(n+1)
     # l = Max_t[12:15]  # vector, sub-array from n*(n+1) to n*(n+1)+n=n*(n+2)
-    f, df = diff_rossler(t[:3])
+    f, df = diff_lorenz(t[:3])
     a = u.T.dot(df.dot(u))
     dl = np.diag(a).copy()
     for i in range(3):
