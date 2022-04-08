@@ -1,4 +1,7 @@
+import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
+from tqdm import tqdm
 from nolitsa import data
 
 import reservoir_computing as rc
@@ -13,7 +16,7 @@ Alpha = 0.27
 Beta = 1e-4
 
 # Activation Function
-Activation_function = ac.relu
+Activation_function = ac.tanh
 
 # Trajectory for Training
 Training_time = int(5555)
@@ -42,28 +45,36 @@ Time_predicting_2, Trajectory_predicting_2 = \
     data.lorenz(length=Predicting_time, sample=0.01, x0=Start_pos_predicting_2, discard=0, sigma=10, beta=8/3, rho=28)
 
 # Coupled Predicting Process
-Coupled_strength = 0.5
 Noise_strength = 0
-Reservoir_state_predicting_1 = np.zeros((Predicting_time, N))
-Reservoir_state_predicting_1[0, :] = Reservoir_state_training_1[-1, :]
-Reservoir_state_predicting_2 = np.zeros((Predicting_time, N))
-Reservoir_state_predicting_2[0, :] = Reservoir_state_training_2[-1, :]
+Coupled_strength_list = Coupled_strength_list = np.linspace(0, 1, 11)
+Coupled_strength_list = Coupled_strength_list = [0.99]
 
-Output_predicting_1, Output_predicting_2 = \
-    rc.coupled_predict(W_r_1, W_i_1, F_out_1, Reservoir_state_predicting_1, Trajectory_predicting_1,
-                       W_r_2, W_i_2, F_out_2, Reservoir_state_predicting_2, Trajectory_predicting_2,
-                       Coupled_strength, Noise_strength, activation_function=Activation_function)
+Result = pd.DataFrame()
+for Coupled_strength in tqdm(Coupled_strength_list):
+    Reservoir_state_predicting_1 = np.zeros((Predicting_time, N))
+    Reservoir_state_predicting_1[0, :] = Reservoir_state_training_1[-1, :]
+    Reservoir_state_predicting_2 = np.zeros((Predicting_time, N))
+    Reservoir_state_predicting_2[0, :] = Reservoir_state_training_2[-1, :]
 
-# Distance_1, RMSE_1, NRMSE_1, MAPE_1 = rc.error_evaluate(Trajectory_predicting_1, Output_predicting_1,
-#                                                         Time_predicting_1 * 8.93203108e-01, plot=False)
-# Distance_2, RMSE_2, NRMSE_2, MAPE_2 = rc.error_evaluate(Trajectory_predicting_2, Output_predicting_2,
-#                                                         Time_predicting_2 * 8.93203108e-01, plot=False)
+    Output_predicting_1, Output_predicting_2 = \
+        rc.coupled_predict(W_r_1, W_i_1, F_out_1, Reservoir_state_predicting_1, Trajectory_predicting_1,
+                           W_r_2, W_i_2, F_out_2, Reservoir_state_predicting_2, Trajectory_predicting_2,
+                           Coupled_strength, Noise_strength, activation_function=Activation_function)
 
-Distance, RMSE, NRMSE, MAPE = rc.error_evaluate(Output_predicting_1, Output_predicting_2,
-                                                Time_predicting_2 * 8.93203108e-01, time_start=222, plot=False)
-# rc.plot_trajectory(Output_predicting_1[222:, :], Output_predicting_2[222:, :])
+    # Distance_1, RMSE_1, NRMSE_1, MAPE_1 = rc.error_evaluate(Trajectory_predicting_1, Output_predicting_1,
+    #                                                         Time_predicting_1 * 8.93203108e-01, plot=False)
+    # Distance_2, RMSE_2, NRMSE_2, MAPE_2 = rc.error_evaluate(Trajectory_predicting_2, Output_predicting_2,
+    #                                                         Time_predicting_2 * 8.93203108e-01, plot=False)
 
-print(rc.lle_lorenz(Trajectory_predicting_1))
-print(rc.lle_lorenz(Trajectory_predicting_2))
-print(rc.lle_lorenz(Output_predicting_1))
-print(rc.lle_lorenz(Output_predicting_2))
+    Distance, RMSE, NRMSE, MAPE = rc.error_evaluate(Output_predicting_1, Output_predicting_2,
+                                                    Time_predicting_2, time_start=222, plot=False)
+    rc.plot_trajectory(Output_predicting_1[222:, :], Output_predicting_2[222:, :])
+    plt.savefig('Result/coupled_traj_%s' % str(Coupled_strength)[2:4])
+    plt.close()
+
+    result = {'Traj_1': rc.lle_lorenz(Trajectory_predicting_1), 'Traj_2': rc.lle_lorenz(Trajectory_predicting_2),
+              'Coupled_1': rc.lle_lorenz(Output_predicting_1), 'Coupled_2': rc.lle_lorenz(Output_predicting_2)}
+    result = pd.DataFrame(result, index=[str(Coupled_strength)[:4]])
+    Result = Result.append(result)
+
+# Result.to_csv('Result/coupled_lyapunov.csv')

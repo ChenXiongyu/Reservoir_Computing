@@ -1,5 +1,7 @@
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
+
 from nolitsa import data
 from tqdm import tqdm
 
@@ -15,7 +17,7 @@ Alpha = 0.27
 Beta = 1e-4
 
 # Activation Function
-Activation_function = ac.relu
+Activation_function = ac.tanh
 
 # Trajectory for Training
 Training_time = int(5555)
@@ -44,8 +46,8 @@ Time_predicting_2, Trajectory_predicting_2 = \
     data.lorenz(length=Predicting_time, sample=0.01, x0=Start_pos_predicting_2, discard=0, sigma=10, beta=8/3, rho=28)
 
 # Coupled Predicting Process
-Coupled_strength_list = np.linspace(0, 1, 11)[1:]
-Noise_strength_list = np.linspace(0, 1, 11)[1:]
+Coupled_strength_list = np.linspace(0.9, 1, 11)
+Noise_strength_list = np.linspace(0, 0.5, 6)
 
 Result_rmse = pd.DataFrame()
 Result_nrmse = pd.DataFrame()
@@ -72,7 +74,10 @@ for Coupled_strength in tqdm(Coupled_strength_list):
 
         Distance, RMSE, NRMSE, MAPE = rc.error_evaluate(Output_predicting_1, Output_predicting_2,
                                                         Time_predicting_2 * 8.93203108e-01, time_start=222, plot=False)
-        # rc.plot_trajectory(Output_predicting_1[222:, :], Output_predicting_2[222:, :])
+        rc.plot_trajectory(Output_predicting_1[222:, :], Output_predicting_2[222:, :])
+        plt.savefig('Result/coupled_traj_%s_%d' % (str(Coupled_strength)[2:4], int(Noise_strength * 10)))
+        plt.close()
+
         RMSE_list[Noise_strength] = RMSE
         NRMSE_list[Noise_strength] = NRMSE
         MAPE_list[Noise_strength] = MAPE

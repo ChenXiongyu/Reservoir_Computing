@@ -14,10 +14,10 @@ D = 3
 Alpha = 0.27
 Beta = 1e-4
 Sigma = 1
-Rou = 0.15
+Rou = 0.9
 
 # Activation Function
-Activation_function = ac.relu
+Activation_function = ac.tanh
 
 # Trajectory for Training
 Start_pos = list(np.random.rand(3))
@@ -31,7 +31,7 @@ W_r, W_i, F_out, Reservoir_state_training, Output_training = \
              activation_function=Activation_function)
 
 # Trajectory for Predicting
-Predicting_time = int(333)
+Predicting_time = int(222)
 Time_predicting, Trajectory_predicting = data.lorenz(length=Predicting_time, sample=0.01, discard=0,
                                                      x0=list(Trajectory_training[-1, :]),
                                                      sigma=10, beta=8/3, rho=28)
