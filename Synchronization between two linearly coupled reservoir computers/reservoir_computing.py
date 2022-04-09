@@ -54,7 +54,7 @@ def reservoir_construction_fix_degree(n_1, n_2, random_type, degree, sr=0.0, sca
         sr = sr / max(abs(np.linalg.eigvals(reservoir)))
         reservoir = sr * reservoir
 
-    if scale:
+    elif scale:
         reservoir = scale * reservoir
 
     return reservoir
@@ -74,6 +74,41 @@ def reservoir_construction_average_allocate(n_1, n_2, random_type, low=0.0, high
         reservoir[index, column] = reservoir_initial[index, column]
     index = np.where(index_array == 1)[0]
     reservoir[index, -1] = reservoir_initial[index, -1]
+
+    return reservoir
+
+
+def reservoir_construction_probability_symmetry(n_1, n_2, random_type, probability, symmetry, antisymmetry,
+                                                low=0.0, high=0.0, scale=0.0, sr=0.0):
+    if symmetry + antisymmetry > 1:
+        return np.zeros((n_1, n_2))
+
+    symmetry = probability * symmetry
+    antisymmetry = probability * antisymmetry
+    non_symmetry = probability - symmetry - antisymmetry
+
+    matrix_symmetry = initial_reservoir(n_1, n_2, random_type, low=low, high=high)
+    index_symmetry = np.array(np.random.uniform(0, 1, (n_1, n_2)) < symmetry, dtype=int)
+    matrix_symmetry = index_symmetry * matrix_symmetry
+    matrix_symmetry = np.triu(matrix_symmetry, 1).T + np.triu(matrix_symmetry)
+
+    matrix_antisymmetry = initial_reservoir(n_1, n_2, random_type, low=low, high=high)
+    index_antisymmetry = np.array(np.random.uniform(0, 1, (n_1, n_2)) < antisymmetry, dtype=int)
+    matrix_antisymmetry = index_antisymmetry * matrix_antisymmetry
+    matrix_antisymmetry = np.triu(matrix_antisymmetry, 1).T - np.triu(matrix_symmetry, 1)
+
+    matrix_non_symmetry = initial_reservoir(n_1, n_2, random_type, low=low, high=high)
+    index_non_symmetry = np.array(np.random.uniform(0, 1, (n_1, n_2)) < non_symmetry, dtype=int)
+    matrix_non_symmetry = index_non_symmetry * matrix_non_symmetry
+
+    reservoir = matrix_symmetry + matrix_antisymmetry + matrix_non_symmetry
+
+    if sr:
+        sr = sr / max(abs(np.linalg.eigvals(reservoir)))
+        reservoir = sr * reservoir
+
+    elif scale:
+        reservoir = scale * reservoir
 
     return reservoir
 
@@ -257,3 +292,47 @@ def lle_lorenz(trajectory, dt=0.01, maxt=250, window=30):
     max_t = np.arange(maxt) * dt
     coef = poly_fit(max_t, divergence, 1)[0]
     return coef
+
+
+def train_reservoir(n, rou, sigma, alpha, beta, probability, symmetry, antisymmetry, trajectory_training, plot=True,
+                    activation_function=np.tanh, basis_function_1=bf.original, basis_function_2=np.square):
+    # print('Train Process...')
+    w_r_function = reservoir_construction_probability_symmetry
+    w_i_function = reservoir_construction_average_allocate
+
+    w_r = w_r_function(n, n, 'uniform', probability, symmetry, antisymmetry, low=-alpha, high=alpha, sr=rou)
+    w_i = w_i_function(n, 3, 'uniform', low=-sigma, high=sigma)
+
+    reservoir_start = np.zeros(n)
+    reservoir_state_training = np.zeros((len(trajectory_training), len(reservoir_start)))
+    reservoir_state_training[0, :] = reservoir_start
+
+    for i in range(1, len(trajectory_training)):
+        reservoir_state_training[i, :] = activation_function(np.dot(w_r, reservoir_state_training[i - 1, :]) +
+                                                             np.dot(w_i, trajectory_training[i - 1, :]))
+
+    x = reservoir_state_training[1000:, :]
+    y = trajectory_training[1000:, :]
+
+    s = x.copy()
+    s[:, ::2] = basis_function_1(s[:, ::2])
+    s[:, 1::2] = basis_function_2(s[:, 1::2])
+    w_0 = np.linalg.solve(np.dot(s.T, s) + beta * np.eye(s.shape[1]), np.dot(s.T, y))
+    w_0 = w_0.T
+
+    w_01 = np.zeros(w_0.shape)
+    w_02 = np.zeros(w_0.shape)
+
+    w_01[:, ::2] = w_0[:, ::2]
+    w_02[:, 1::2] = w_0[:, 1::2]
+
+    output_training = np.dot(w_01, basis_function_1(x.T)) + np.dot(w_02, basis_function_2(x.T))
+    output_training = output_training.T
+
+    def f_out(r):
+        return (np.dot(w_01, basis_function_1(r.T)) + np.dot(w_02, basis_function_2(r.T))).T
+
+    if plot:
+        plot_trajectory(y, output_training)
+
+    return w_r, w_i, f_out, reservoir_state_training, output_training

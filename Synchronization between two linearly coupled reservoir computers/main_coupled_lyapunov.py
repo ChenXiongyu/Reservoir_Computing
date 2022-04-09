@@ -46,8 +46,7 @@ Time_predicting_2, Trajectory_predicting_2 = \
 
 # Coupled Predicting Process
 Noise_strength = 0
-Coupled_strength_list = Coupled_strength_list = np.linspace(0, 1, 11)
-Coupled_strength_list = Coupled_strength_list = [0.99]
+Coupled_strength_list = Coupled_strength_list = np.linspace(0.9, 1, 11)
 
 Result = pd.DataFrame()
 for Coupled_strength in tqdm(Coupled_strength_list):
@@ -72,9 +71,11 @@ for Coupled_strength in tqdm(Coupled_strength_list):
     plt.savefig('Result/coupled_traj_%s' % str(Coupled_strength)[2:4])
     plt.close()
 
-    result = {'Traj_1': rc.lle_lorenz(Trajectory_predicting_1), 'Traj_2': rc.lle_lorenz(Trajectory_predicting_2),
-              'Coupled_1': rc.lle_lorenz(Output_predicting_1), 'Coupled_2': rc.lle_lorenz(Output_predicting_2)}
+    result = {'Traj_1': rc.lle_lorenz(Trajectory_predicting_1[222:, :]),
+              'Traj_2': rc.lle_lorenz(Trajectory_predicting_2[222:, :]),
+              'Coupled_1': rc.lle_lorenz(Output_predicting_1[222:, :]),
+              'Coupled_2': rc.lle_lorenz(Output_predicting_2[222:, :])}
     result = pd.DataFrame(result, index=[str(Coupled_strength)[:4]])
     Result = Result.append(result)
 
-# Result.to_csv('Result/coupled_lyapunov.csv')
+Result.to_csv('Result/coupled_lyapunov.csv')
