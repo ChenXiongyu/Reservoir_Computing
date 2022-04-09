@@ -336,3 +336,64 @@ def train_reservoir(n, rou, sigma, alpha, beta, probability, symmetry, antisymme
         plot_trajectory(y, output_training)
 
     return w_r, w_i, f_out, reservoir_state_training, output_training
+
+
+def train_delay(n, d, rou, sigma, alpha, beta, delay, trajectory_training, plot=True,
+                activation_function=np.tanh, basis_function_1=bf.original, basis_function_2=np.square):
+    # print('Train Process...')
+    w_r_function = reservoir_construction_fix_degree
+    w_i_function = reservoir_construction_average_allocate
+
+    w_r = w_r_function(n, n, 'uniform', d, sr=rou,  low=0.0, high=alpha)
+    w_i = w_i_function(n, 3, 'uniform', low=-sigma, high=sigma)
+
+    reservoir_start = np.zeros(n)
+    reservoir_state_training = np.zeros((len(trajectory_training), len(reservoir_start)))
+    reservoir_state_training[0, :] = reservoir_start
+
+    for i in range(1, len(trajectory_training) - delay):
+        reservoir_state_training[i + delay, :] = activation_function(
+            np.dot(w_r, reservoir_state_training[i - 1, :]) + np.dot(w_i, trajectory_training[i - 1, :]))
+
+    x = reservoir_state_training[1000:, :]
+    y = trajectory_training[1000:, :]
+
+    s = x.copy()
+    s[:, ::2] = basis_function_1(s[:, ::2])
+    s[:, 1::2] = basis_function_2(s[:, 1::2])
+    w_0 = np.linalg.solve(np.dot(s.T, s) + beta * np.eye(s.shape[1]), np.dot(s.T, y))
+    w_0 = w_0.T
+
+    w_01 = np.zeros(w_0.shape)
+    w_02 = np.zeros(w_0.shape)
+
+    w_01[:, ::2] = w_0[:, ::2]
+    w_02[:, 1::2] = w_0[:, 1::2]
+
+    output_training = np.dot(w_01, basis_function_1(x.T)) + np.dot(w_02, basis_function_2(x.T))
+    output_training = output_training.T
+
+    def f_out(r):
+        return (np.dot(w_01, basis_function_1(r.T)) + np.dot(w_02, basis_function_2(r.T))).T
+
+    if plot:
+        plot_trajectory(y, output_training)
+
+    return w_r, w_i, f_out, reservoir_state_training, output_training
+
+
+def self_predict_delay(w_r, w_i, f_out, delay, trajectory_predicting, reservoir_state_predicting,
+                       activation_function=np.tanh, plot=True):
+    # print('Self Predicting Process...')
+    output_predicting = np.zeros(trajectory_predicting.shape)
+    output_predicting[0:(delay + 1), :] = trajectory_predicting[0:(delay + 1), :]
+
+    for i in range(1, len(trajectory_predicting) - delay):
+        reservoir_state_predicting[i + delay, :] = activation_function(
+            np.dot(w_r, reservoir_state_predicting[i - 1, :]) + np.dot(w_i, output_predicting[i - 1, :]))
+        output_predicting[i + delay, :] = f_out(reservoir_state_predicting[i + delay, :])
+
+    if plot:
+        plot_trajectory(trajectory_predicting, output_predicting)
+
+    return output_predicting

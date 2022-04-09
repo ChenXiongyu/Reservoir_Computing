@@ -20,12 +20,12 @@ Sigma = 1
 Rou = 0.15
 
 Probability = 0.003
-Antisymmetry = 0
+
 
 Result = pd.DataFrame()
-Symmetry_list = np.linspace(0, 1, 11)
-for Symmetry in tqdm(Symmetry_list):
-
+Antisymmetry_list = np.linspace(0, 1, 11)
+for Antisymmetry in tqdm(Antisymmetry_list):
+    Symmetry = 1 - Antisymmetry
     RMSE_list, NRMSE_list, MAPE_list = [], [], []
     for Times in range(20):
         # Activation Function
@@ -33,7 +33,7 @@ for Symmetry in tqdm(Symmetry_list):
 
         # Trajectory for Training
         Start_pos = list(np.random.rand(3))
-        Time_training, Trajectory_training = data.lorenz(length=5714, sample=0.01, x0=Start_pos, discard=0,
+        Time_training, Trajectory_training = data.lorenz(length=5555, sample=0.01, x0=Start_pos, discard=0,
                                                          sigma=10, beta=8/3, rho=28)
 
         # Train Process
@@ -44,7 +44,7 @@ for Symmetry in tqdm(Symmetry_list):
                                activation_function=Activation_function)
 
         # Trajectory for Predicting
-        Predicting_time = int(571)
+        Predicting_time = int(555)
         Time_predicting, Trajectory_predicting = data.lorenz(length=Predicting_time, sample=0.01, discard=0,
                                                              x0=list(Trajectory_training[-1, :]),
                                                              sigma=10, beta=8/3, rho=28)
@@ -66,12 +66,12 @@ for Symmetry in tqdm(Symmetry_list):
         MAPE_list.append(MAPE)
 
     result = pd.DataFrame({'RMSE': np.median(RMSE_list), 'NRMSE': np.median(NRMSE_list), 'MAPE': np.median(MAPE_list)},
-                          index=[str(Symmetry)[:4]])
+                          index=[str(Antisymmetry)[:4]])
     # print(result)
     Result = Result.append(result)
 
 Path = 'Result'
-Result.to_csv(Path + '/result_symmetry.csv')
+Result.to_csv(Path + '/result_symmetry_antisymmetry.csv')
 
 for indicator in range(3):
     plt.subplot(3, 1, indicator + 1)
