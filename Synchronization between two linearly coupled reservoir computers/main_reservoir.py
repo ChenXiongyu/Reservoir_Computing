@@ -8,9 +8,6 @@ import basis_function as bf
 import reservoir_computing as rc
 import activation_function as ac
 
-import warnings
-warnings.filterwarnings('ignore')
-
 # Parameters
 N = 1000
 D = 3
@@ -18,19 +15,19 @@ Alpha = 0.27
 Beta = 1e-4
 Sigma = 1
 Rou = 0.15
+Probability = 0.0015
 
-Probability = 0.003
-
+# Activation Function
+Activation_function = ac.relu
 
 Result = pd.DataFrame()
+RMSE_dict, NRMSE_dict, MAPE_dict = {}, {}, {}
 Antisymmetry_list = np.linspace(0, 1, 11)
 for Antisymmetry in tqdm(Antisymmetry_list):
     Symmetry = 1 - Antisymmetry
-    RMSE_list, NRMSE_list, MAPE_list = [], [], []
-    for Times in range(20):
-        # Activation Function
-        Activation_function = ac.relu
 
+    RMSE_list, NRMSE_list, MAPE_list = [], [], []
+    for Times in range(1):
         # Trajectory for Training
         Start_pos = list(np.random.rand(3))
         Time_training, Trajectory_training = data.lorenz(length=5555, sample=0.01, x0=Start_pos, discard=0,
@@ -65,10 +62,18 @@ for Antisymmetry in tqdm(Antisymmetry_list):
         NRMSE_list.append(NRMSE)
         MAPE_list.append(MAPE)
 
+    RMSE_dict[int(Probability * 10000)] = RMSE_list
+    NRMSE_dict[int(Probability * 10000)] = NRMSE_list
+    MAPE_dict[int(Probability * 10000)] = MAPE_list
+
     result = pd.DataFrame({'RMSE': np.median(RMSE_list), 'NRMSE': np.median(NRMSE_list), 'MAPE': np.median(MAPE_list)},
                           index=[str(Antisymmetry)[:4]])
     # print(result)
     Result = Result.append(result)
+
+RMSE_dict = pd.DataFrame(RMSE_dict)
+NRMSE_dict = pd.DataFrame(NRMSE_dict)
+MAPE_dict = pd.DataFrame(MAPE_dict)
 
 Path = 'Result'
 Result.to_csv(Path + '/result_symmetry_antisymmetry.csv')

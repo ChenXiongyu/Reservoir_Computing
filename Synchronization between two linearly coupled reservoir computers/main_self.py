@@ -11,13 +11,13 @@ warnings.filterwarnings('ignore')
 # Parameters
 N = 1000
 D = 3
-Alpha = 0.27
+Alpha = 1  # Useless Actually
 Beta = 1e-4
 Sigma = 1
 Rou = 0.9
 
 # Activation Function
-Activation_function = ac.tanh
+Activation_function = ac.relu
 
 # Trajectory for Training
 Start_pos = list(np.random.rand(3))

@@ -87,27 +87,33 @@ def reservoir_construction_probability_symmetry(n_1, n_2, random_type, probabili
     antisymmetry = probability * antisymmetry
     non_symmetry = probability - symmetry - antisymmetry
 
-    matrix_symmetry = initial_reservoir(n_1, n_2, random_type, low=low, high=high)
-    index_symmetry = np.array(np.random.uniform(0, 1, (n_1, n_2)) < symmetry, dtype=int)
-    matrix_symmetry = index_symmetry * matrix_symmetry
-    matrix_symmetry = np.triu(matrix_symmetry, 1).T + np.triu(matrix_symmetry)
+    while True:
+        matrix_symmetry = initial_reservoir(n_1, n_2, random_type, low=low, high=high)
+        index_symmetry = np.array(np.random.uniform(0, 1, (n_1, n_2)) < symmetry, dtype=int)
+        matrix_symmetry = index_symmetry * matrix_symmetry
+        matrix_symmetry = np.triu(matrix_symmetry, 1).T + np.triu(matrix_symmetry)
 
-    matrix_antisymmetry = initial_reservoir(n_1, n_2, random_type, low=low, high=high)
-    index_antisymmetry = np.array(np.random.uniform(0, 1, (n_1, n_2)) < antisymmetry, dtype=int)
-    matrix_antisymmetry = index_antisymmetry * matrix_antisymmetry
-    matrix_antisymmetry = np.triu(matrix_antisymmetry, 1).T - np.triu(matrix_symmetry, 1)
+        matrix_antisymmetry = initial_reservoir(n_1, n_2, random_type, low=low, high=high)
+        index_antisymmetry = np.array(np.random.uniform(0, 1, (n_1, n_2)) < antisymmetry, dtype=int)
+        matrix_antisymmetry = index_antisymmetry * matrix_antisymmetry
+        matrix_antisymmetry = np.triu(matrix_antisymmetry, 1).T - np.triu(matrix_symmetry, 1)
 
-    matrix_non_symmetry = initial_reservoir(n_1, n_2, random_type, low=low, high=high)
-    index_non_symmetry = np.array(np.random.uniform(0, 1, (n_1, n_2)) < non_symmetry, dtype=int)
-    matrix_non_symmetry = index_non_symmetry * matrix_non_symmetry
+        matrix_non_symmetry = initial_reservoir(n_1, n_2, random_type, low=low, high=high)
+        index_non_symmetry = np.array(np.random.uniform(0, 1, (n_1, n_2)) < non_symmetry, dtype=int)
+        matrix_non_symmetry = index_non_symmetry * matrix_non_symmetry
 
-    reservoir = matrix_symmetry + matrix_antisymmetry + matrix_non_symmetry
+        reservoir = matrix_symmetry + matrix_antisymmetry + matrix_non_symmetry
 
-    if sr:
-        sr = sr / max(abs(np.linalg.eigvals(reservoir)))
-        reservoir = sr * reservoir
+        if sr:
+            eig = max(abs(np.linalg.eigvals(reservoir)))
+            if eig < 1e-4:
+                continue
+            else:
+                sr = sr / eig
+            reservoir = sr * reservoir
+            break
 
-    elif scale:
+    if scale:
         reservoir = scale * reservoir
 
     return reservoir
@@ -300,7 +306,7 @@ def train_reservoir(n, rou, sigma, alpha, beta, probability, symmetry, antisymme
     w_r_function = reservoir_construction_probability_symmetry
     w_i_function = reservoir_construction_average_allocate
 
-    w_r = w_r_function(n, n, 'uniform', probability, symmetry, antisymmetry, low=-alpha, high=alpha, sr=rou)
+    w_r = w_r_function(n, n, 'uniform', probability, symmetry, antisymmetry, low=0.0, high=alpha, sr=rou)
     w_i = w_i_function(n, 3, 'uniform', low=-sigma, high=sigma)
 
     reservoir_start = np.zeros(n)
