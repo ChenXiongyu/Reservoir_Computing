@@ -24,11 +24,12 @@ Result = pd.DataFrame()
 RMSE_dict, NRMSE_dict, MAPE_dict = {}, {}, {}
 Antisymmetry_list = np.linspace(0, 1, 11)
 Symmetry_list = np.linspace(0, 1, 11)
+
 for Symmetry in tqdm(Symmetry_list):
     Antisymmetry = 0
 
     RMSE_list, NRMSE_list, MAPE_list = [], [], []
-    for Times in range(10):
+    for Times in range(20):
         # Trajectory for Training
         Start_pos = list(np.random.rand(3))
         Time_training, Trajectory_training = data.lorenz(length=5555, sample=0.01, x0=Start_pos, discard=0,
@@ -67,7 +68,9 @@ for Symmetry in tqdm(Symmetry_list):
     NRMSE_dict[int(Symmetry * 10)] = NRMSE_list
     MAPE_dict[int(Symmetry * 10)] = MAPE_list
 
-    result = pd.DataFrame({'RMSE': np.median(RMSE_list), 'NRMSE': np.median(NRMSE_list), 'MAPE': np.median(MAPE_list)},
+    result = pd.DataFrame({'RMSE': np.median(RMSE_list),
+                           'NRMSE': np.median(NRMSE_list),
+                           'MAPE': np.median(MAPE_list)},
                           index=[int(Symmetry * 10)])
     # print(result)
     Result = Result.append(result)

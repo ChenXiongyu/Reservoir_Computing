@@ -1,11 +1,12 @@
+import warnings
+
 import numpy as np
 from nolitsa import data
 
+import activation_function as ac
 import basis_function as bf
 import reservoir_computing as rc
-import activation_function as ac
 
-import warnings
 warnings.filterwarnings('ignore')
 
 # Parameters
