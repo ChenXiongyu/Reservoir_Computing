@@ -1,39 +1,34 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import basis_function as bf
+from nolitsa import lyapunov, data
 from tqdm import tqdm
-from nolitsa import lyapunov
+
 from outer_function import poly_fit
 
 
-def lorenz_system(start_pos, trajectory_length, delta_t):
+# Data Module
+lorenz = data.lorenz  # Lorenz System
 
-    trajectory = np.zeros((trajectory_length, len(start_pos)))
-    trajectory[0, :] = start_pos
-
-    for t in range(trajectory_length - 1):
-        derivative = np.array([10 * (trajectory[t, 1] - trajectory[t, 0]),
-                               trajectory[t, 0] * (28 - trajectory[t, 2]) - trajectory[t, 1],
-                               trajectory[t, 0] * trajectory[t, 1] - trajectory[t, 2]])
-        trajectory[t + 1, :] = trajectory[t, :] + derivative * delta_t
-
-    return trajectory
+roessler = data.roessler  # Roessler System
 
 
-def rossler_system(start_pos, trajectory_length, delta_t):
-
-    trajectory = np.zeros((trajectory_length, len(start_pos)))
-    trajectory[0, :] = start_pos
-
-    for t in range(trajectory_length - 1):
-        derivative = np.array([- trajectory[t, 1] - trajectory[t, 2],
-                               trajectory[t, 0] + 0.5 * trajectory[t, 1],
-                               2 + trajectory[t, 2] * (trajectory[t, 0] - 4)])
-        trajectory[t + 1, :] = trajectory[t, :] + derivative * delta_t
-
-    return trajectory
-
-
+def sprott(length, sample, x0, discard=0):
+    
+    time = np.linspace(sample, sample * length, length)
+    
+    def sprott_ode(y, _):
+        x, y, z = y
+        dydt = [y * z, x - y, 1 - x * y]
+        return dydt
+    
+    from scipy.integrate import odeint
+    sol = odeint(sprott_ode, x0, time)  
+    sol = sol[discard:, :]
+    
+    return time, sol
+    
+    
+# Reservoir Construction Module
 def initial_reservoir(n_1, n_2, random_type, low=0.0, high=0.0):
     reservoir = np.zeros((n_1, n_2))
     if random_type == 'uniform':
@@ -119,9 +114,58 @@ def reservoir_construction_probability_symmetry(n_1, n_2, random_type, probabili
     return reservoir
 
 
+# Activation Function Module
+def tanh(array):
+    return np.tanh(array)
+
+
+def relu(array):
+    return (abs(array) + array) / 2
+
+
+def sigmoid(array):
+    return 1 / (1 + np.exp(-array))
+
+
+def prelu(array, alpha=0.01):
+    fx = np.zeros(len(array))
+    fx[array >= 0] = array[array >= 0]
+    fx[array < 0] = alpha * array[array < 0]
+    return fx
+
+
+def elu(array, alpha=1):
+    fx = np.zeros(len(array))
+    fx[array >= 0] = array[array >= 0]
+    fx[array < 0] = alpha * (np.exp(array) - 1)[array < 0]
+    return fx
+
+
+def soft_plus(array):
+    return np.log(1 + np.exp(array))
+
+
+# Basis Function Module
+def original(array):
+    return array
+
+
+def square(array):
+    return np.square(array)
+
+
+def sin(array, k=1):
+    return np.sin(k * array)
+
+
+def cos(array, k=1):
+    return np.cos(k * array)
+
+
+# Plot Module
 def plot_trajectory(trajectory_1, trajectory_2=np.array([]), save_path=''):
     fig = plt.figure()
-    ax = fig.gca(projection='3d')
+    ax = fig.add_subplot(projection='3d')
     ax.plot(trajectory_1[:, 0], trajectory_1[:, 1], trajectory_1[:, 2])
 
     if len(trajectory_2):
@@ -132,14 +176,17 @@ def plot_trajectory(trajectory_1, trajectory_2=np.array([]), save_path=''):
         plt.close()
 
 
-def train(n, d, rou, sigma, alpha, beta, trajectory_training, plot=True,
-          activation_function=np.tanh, basis_function_1=bf.original, basis_function_2=np.square):
+# Computing Module
+def train(n, d, rou, sigma, beta, trajectory_training, plot=True,
+          activation_function=np.tanh, 
+          basis_function_1=original, basis_function_2=np.square, 
+          discard=1000):
     # print('Train Process...')
     w_r_function = reservoir_construction_fix_degree
     w_i_function = reservoir_construction_average_allocate
 
-    w_r = w_r_function(n, n, 'uniform', d, sr=rou,  low=0.0, high=alpha)
-    w_i = w_i_function(n, 3, 'uniform', low=-sigma, high=sigma)
+    w_r = w_r_function(n, n, 'uniform', d, sr=rou,  low=0.0, high=1.0)
+    w_i = w_i_function(n, d, 'uniform', low=-sigma, high=sigma)
 
     reservoir_start = np.zeros(n)
     reservoir_state_training = np.zeros((len(trajectory_training), len(reservoir_start)))
@@ -149,8 +196,8 @@ def train(n, d, rou, sigma, alpha, beta, trajectory_training, plot=True,
         reservoir_state_training[i, :] = activation_function(np.dot(w_r, reservoir_state_training[i - 1, :]) +
                                                              np.dot(w_i, trajectory_training[i - 1, :]))
 
-    x = reservoir_state_training[1000:, :]
-    y = trajectory_training[1000:, :]
+    x = reservoir_state_training[discard:, :]
+    y = trajectory_training[discard:, :]
 
     s = x.copy()
     s[:, ::2] = basis_function_1(s[:, ::2])
@@ -301,7 +348,7 @@ def lle_lorenz(trajectory, dt=0.01, maxt=250, window=30):
 
 
 def train_reservoir(n, rou, sigma, alpha, beta, probability, symmetry, antisymmetry, trajectory_training, plot=True,
-                    activation_function=np.tanh, basis_function_1=bf.original, basis_function_2=np.square):
+                    activation_function=np.tanh, basis_function_1=original, basis_function_2=np.square):
     # print('Train Process...')
     w_r_function = reservoir_construction_probability_symmetry
     w_i_function = reservoir_construction_average_allocate
@@ -345,7 +392,7 @@ def train_reservoir(n, rou, sigma, alpha, beta, probability, symmetry, antisymme
 
 
 def train_delay(n, d, rou, sigma, alpha, beta, delay, trajectory_training, plot=True,
-                activation_function=np.tanh, basis_function_1=bf.original, basis_function_2=np.square):
+                activation_function=np.tanh, basis_function_1=original, basis_function_2=np.square):
     # print('Train Process...')
     w_r_function = reservoir_construction_fix_degree
     w_i_function = reservoir_construction_average_allocate
