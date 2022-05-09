@@ -172,7 +172,7 @@ def plot_trajectory(trajectory_1, trajectory_2=np.array([]), save_path=''):
         ax.plot(trajectory_2[:, 0], trajectory_2[:, 1], trajectory_2[:, 2], '-')
 
     if save_path:
-        plt.savefig(save_path)
+        plt.savefig(save_path, format='svg')
         plt.close()
 
 
@@ -224,7 +224,7 @@ def train(n, d, rou, sigma, beta, trajectory_training, plot=True,
 
 
 def self_predict(w_r, w_i, f_out, trajectory_predicting, reservoir_state_predicting,
-                 activation_function=np.tanh, plot=True):
+                 activation_function=np.tanh, plot=True, save_path=''):
     # print('Self Predicting Process...')
     output_predicting = np.zeros(trajectory_predicting.shape)
     output_predicting[0, :] = trajectory_predicting[0, :]
@@ -236,8 +236,41 @@ def self_predict(w_r, w_i, f_out, trajectory_predicting, reservoir_state_predict
 
     if plot:
         plot_trajectory(trajectory_predicting, output_predicting)
+        
+        if save_path:
+            plt.savefig(save_path, format='svg')
+            plt.close()
 
     return output_predicting
+
+
+# Evaluation Module
+def error_evaluate(trajectory_target, trajectory_output, time, time_start=0, time_end=0, plot=True, save_path=''):
+    difference = trajectory_target - trajectory_output
+    if time_end == 0:
+        time_end = min(len(trajectory_target), len(trajectory_output))
+
+    distance = np.sqrt(np.sum(difference[time_start:time_end, :] ** 2, axis=1))
+
+    rmse = np.sqrt(np.mean(np.sum(difference[time_start:time_end, :] ** 2, axis=1)))
+    nrmse = np.sqrt(np.sum(difference[time_start:time_end, :] ** 2) /
+                    np.sum((trajectory_target - np.mean(trajectory_target, axis=0))[time_start:time_end, :] ** 2))
+    mape = float(np.mean(distance / np.sqrt(np.sum(trajectory_target[time_start:time_end, :] ** 2, axis=1))))
+
+    if plot:
+        plt.figure()
+        plt.plot(time[time_start:time_end], distance)
+        plt.text(0, max(distance) / 2, 'RMSE = %.2f\nNRMSE = %.2f\nMAPE = %.2f' % (rmse, nrmse, mape))
+
+        if save_path:
+            plt.savefig(save_path, format='svg')
+            plt.close()
+        
+    result = {'RMSE': rmse, 'nrmse': nrmse, 'mape': mape}
+    return distance, result
+
+
+
 
 
 def coupled_predict(w_r_1, w_i_1, f_out_1, reservoir_state_predicting_1, trajectory_predicting_1,
@@ -318,26 +351,6 @@ def self_predict_teacher(w_r, w_i, f_out, trajectory_predicting, reservoir_state
         plot_trajectory(trajectory_predicting, output_predicting)
 
     return output_predicting
-
-
-def error_evaluate(trajectory_target, trajectory_output, time, time_start=0, time_end=0, plot=True):
-    difference = trajectory_target - trajectory_output
-    if time_end == 0:
-        time_end = min(len(trajectory_target), len(trajectory_output))
-
-    distance = np.sqrt(np.sum(difference[time_start:time_end, :] ** 2, axis=1))
-
-    rmse = np.sqrt(np.mean(np.sum(difference[time_start:time_end, :] ** 2, axis=1)))
-    nrmse = np.sqrt(np.sum(difference[time_start:time_end, :] ** 2) /
-                    np.sum((trajectory_target - np.mean(trajectory_target, axis=0))[time_start:time_end, :] ** 2))
-    mape = float(np.mean(distance / np.sqrt(np.sum(trajectory_target[time_start:time_end, :] ** 2, axis=1))))
-
-    if plot:
-        plt.figure()
-        plt.plot(time[time_start:time_end], distance)
-        plt.text(0, max(distance) / 2, 'RMSE = %.2f\nNRMSE = %.2f\nMAPE = %.2f' % (rmse, nrmse, mape))
-
-    return distance, rmse, nrmse, mape
 
 
 def lle_lorenz(trajectory, dt=0.01, maxt=250, window=30):

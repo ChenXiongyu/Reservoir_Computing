@@ -5,21 +5,21 @@ import warnings
 warnings.filterwarnings('ignore')
 
 # Trajectory
-Function_trajectory = rc.sprott
+Function_trajectory = rc.lorenz
 
 # Capacity
-Capacity_training = 55555
-Capacity_predicting = 1111
+Capacity_training = 5555
+Capacity_predicting = 222
 
 # Parameters
 N = 1000
 D= 3
 Beta = 1e-4
 Sigma = 1
-Rou = 0.5
+Rou = 0.9
 
 # Function
-Function_activation = rc.tanh
+Function_activation = rc.elu
 Function_basis_1 = rc.original
 Function_basis_2 = rc.square
 
@@ -36,21 +36,21 @@ W_r, W_i, F_out, Reservoir_state_training, Output_training = \
              activation_function=Function_activation)
 
 # Predicting Process
-Predicting_time = int(Capacity_predicting)
 Time_predicting, Trajectory_predicting = \
-    Function_trajectory(length=Predicting_time, sample=0.01, discard=0, 
+    Function_trajectory(length=Capacity_predicting, 
+                        sample=0.01, discard=0, 
                         x0=list(Trajectory_training[-1, :]))
 
-Reservoir_state_predicting = np.zeros((Predicting_time, N))
+Reservoir_state_predicting = np.zeros((Capacity_predicting, N))
 Reservoir_state_predicting[0, :] = Reservoir_state_training[-1, :]
 
-Output_predicting = rc.self_predict(W_r, W_i, F_out, Trajectory_predicting, 
-                                    Reservoir_state_predicting,
-                                    activation_function=Function_activation, 
-                                    plot=True)
+Output_predicting = \
+    rc.self_predict(W_r, W_i, F_out, Trajectory_predicting, 
+                    Reservoir_state_predicting,
+                    activation_function=Function_activation, 
+                    plot=True)
 
 # Valuation
-Distance, RMSE, NRMSE, MAPE = rc.error_evaluate(Trajectory_predicting, 
-                                                Output_predicting,
-                                                Time_predicting, 
-                                                plot=True)
+Distance, Evaluation = rc.error_evaluate(Trajectory_predicting, 
+                                         Output_predicting,
+                                         Time_predicting, plot=True)
