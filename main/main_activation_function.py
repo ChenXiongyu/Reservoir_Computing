@@ -23,14 +23,14 @@ Beta = 1e-4
 Sigma = 1
 
 # Function
-Function_activation = rc.relu
+Function_activation = rc.elu
 Function_basis_1 = rc.original
 Function_basis_2 = rc.square
 
-# Save
+# Path
 Path = f'Result/Activation/{Function_activation.__name__}'
 try:
-    os.makedirs(Path)
+    os.makedirs(Path + '/pic')
 except FileExistsError:
     pass
 
@@ -62,18 +62,17 @@ for Rou in tqdm(Rou_list):
         Reservoir_state_predicting[0, :] = Reservoir_state_training[-1, :]
 
         Output_predicting = \
-            rc.self_predict(W_r, W_i, F_out, Trajectory_predicting, 
-                            Reservoir_state_predicting,
-                            activation_function=Function_activation, 
-                            plot=True, 
-                            save_path=Path + 
-                            f'/predict_{str(Rou)[:4]}_{Times}.svg')
+            rc.predict(W_r, W_i, F_out, Trajectory_predicting, 
+                       Reservoir_state_predicting,
+                       activation_function=Function_activation, 
+                       plot=True, save_path=Path + '/pic' + 
+                       f'/predict_{str(Rou)[:4]}_{Times}.svg')
 
         # Valuation
         _, Evaluation = \
             rc.error_evaluate(Trajectory_predicting, Output_predicting,
                               Time_predicting, plot=True, 
-                              save_path=Path + 
+                              save_path=Path + '/pic' + 
                               f'/evaluation_{str(Rou)[:4]}_{Times}.svg')
 
         Result = Result.append(pd.DataFrame(Evaluation, index=[str(Rou)[:4]]))

@@ -223,8 +223,8 @@ def train(n, d, rou, sigma, beta, trajectory_training, plot=True,
     return w_r, w_i, f_out, reservoir_state_training, output_training
 
 
-def self_predict(w_r, w_i, f_out, trajectory_predicting, reservoir_state_predicting,
-                 activation_function=np.tanh, plot=True, save_path=''):
+def predict(w_r, w_i, f_out, trajectory_predicting, reservoir_state_predicting,
+            activation_function=np.tanh, plot=True, save_path=''):
     # print('Self Predicting Process...')
     output_predicting = np.zeros(trajectory_predicting.shape)
     output_predicting[0, :] = trajectory_predicting[0, :]

@@ -45,10 +45,10 @@ Reservoir_state_predicting = np.zeros((Capacity_predicting, N))
 Reservoir_state_predicting[0, :] = Reservoir_state_training[-1, :]
 
 Output_predicting = \
-    rc.self_predict(W_r, W_i, F_out, Trajectory_predicting, 
-                    Reservoir_state_predicting,
-                    activation_function=Function_activation, 
-                    plot=True)
+    rc.predict(W_r, W_i, F_out, Trajectory_predicting, 
+               Reservoir_state_predicting,
+               activation_function=Function_activation, 
+               plot=True)
 
 # Valuation
 Distance, Evaluation = rc.error_evaluate(Trajectory_predicting, 
