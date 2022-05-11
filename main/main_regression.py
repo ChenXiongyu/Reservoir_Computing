@@ -55,7 +55,9 @@ def rc_model(capacity, trajectory, start, rou, activation):
 
 
 Ranking = pd.DataFrame()
-for Times in tqdm(range(10)):
+for Times in tqdm(range(5)):
+
+
     # Trajectory
     D = 3
     Function_trajectory = rc.roessler
@@ -63,13 +65,13 @@ for Times in tqdm(range(10)):
 
 
     # Capacity
-    Capacity = {'training': 5000, 'predicting': 2500}
-    Regression = 1250
+    Capacity = {'training': 5000, 'predicting': 3000}
+    Regression = 2000
 
 
     # Function
     Function_list = [rc.elu, rc.soft_plus, rc.prelu, 
-                    rc.relu, rc.tanh, rc.sigmoid]
+                     rc.relu, rc.tanh, rc.sigmoid]
     Evaluation = pd.DataFrame()
     Distance = np.zeros((Capacity['predicting'] - Regression, 
                         len(Function_list) + 1))
@@ -106,7 +108,7 @@ for Times in tqdm(range(10)):
 
 
     # Regression
-    regr = linear_model.Ridge(alpha=1)
+    regr = linear_model.Ridge(alpha=5)
     X_train = np.vstack((X_train[:, :, 0], 
                          X_train[:, :, 1], 
                          X_train[:, :, 2]))
@@ -134,6 +136,8 @@ for Times in tqdm(range(10)):
     # plt.legend()
     # plt.savefig('Distance.svg', format='svg')
 
+
+    # Rankings
     ranking = {}
     RMSE = Evaluation['RMSE'].values
     for f in Evaluation.index:
@@ -142,4 +146,6 @@ for Times in tqdm(range(10)):
                      [np.argsort(RMSE)] == f)[0][0]
     ranking = pd.DataFrame(ranking, index=[Times])
     Ranking = Ranking.append(ranking)
+    
+Ranking.to_csv('ranking.csv')
 print(Ranking)
