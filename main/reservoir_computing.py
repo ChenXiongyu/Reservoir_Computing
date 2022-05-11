@@ -246,6 +246,8 @@ def predict(w_r, w_i, f_out, trajectory_predicting, reservoir_state_predicting,
 
 # Evaluation Module
 def error_evaluate(trajectory_target, trajectory_output, time, time_start=0, time_end=0, plot=True, save_path=''):
+    if time == 0:
+        time = np.array(list(range(trajectory_target.shape[0])), dtype=int)
     difference = trajectory_target - trajectory_output
     if time_end == 0:
         time_end = min(len(trajectory_target), len(trajectory_output))

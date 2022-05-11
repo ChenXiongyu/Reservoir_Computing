@@ -1,0 +1,4 @@
+,elu,tanh,soft_plus,prelu,relu,sigmoid
+lorenz,0.3,0.3,0.75,0.4,0.1,0.9
+roessler,0.7,0.05,0.05,0.15,0.1,0.05
+sprott,0.35,0.2,0.4,0.55,0.2,0.45

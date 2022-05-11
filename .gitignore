@@ -1,4 +1,4 @@
 files/*
 others/*
-main/_pycache_/*
 main/Result/*
+main/__pycache__/*

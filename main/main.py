@@ -5,21 +5,21 @@ import warnings
 warnings.filterwarnings('ignore')
 
 # Trajectory
-Function_trajectory = rc.lorenz
+Function_trajectory = rc.sprott
 
 # Capacity
-Capacity_training = 5555
-Capacity_predicting = 222
+Capacity_training = 5000
+Capacity_predicting = 1500
 
 # Parameters
 N = 1000
 D= 3
 Beta = 1e-4
 Sigma = 1
-Rou = 0.9
+Rou = 0.1
 
 # Function
-Function_activation = rc.elu
+Function_activation = rc.soft_plus
 Function_basis_1 = rc.original
 Function_basis_2 = rc.square
 

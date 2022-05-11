@@ -10,11 +10,11 @@ import warnings
 warnings.filterwarnings('ignore')
 
 # Trajectory
-Function_trajectory = rc.lorenz
+Function_trajectory = rc.sprott
 
 # Capacity
-Capacity_training = 5555
-Capacity_predicting = 222
+Capacity_training = 5000
+Capacity_predicting = 2000
 
 # Parameters
 N = 1000
@@ -42,8 +42,8 @@ for Rou in tqdm(Rou_list):
         # Trajectory for Training
         Start_pos = list(np.random.rand(D))
         Time_training, Trajectory_training = \
-            rc.lorenz(length=Capacity_training, sample=0.01, 
-                      x0=Start_pos, discard=0)
+            Function_trajectory(length=Capacity_training, sample=0.01, 
+                                x0=Start_pos, discard=0)
 
         # Train Process
         W_r, W_i, F_out, Reservoir_state_training, Output_training = \
@@ -54,8 +54,8 @@ for Rou in tqdm(Rou_list):
 
         # Trajectory for Predicting
         Time_predicting, Trajectory_predicting = \
-            rc.lorenz(length=Capacity_predicting, sample=0.01, discard=0,
-                      x0=list(Trajectory_training[-1, :]))
+            Function_trajectory(length=Capacity_predicting, sample=0.01, 
+                                discard=0, x0=list(Trajectory_training[-1, :]))
 
         # Self Predicting Process
         Reservoir_state_predicting = np.zeros((Capacity_predicting, N))
@@ -85,8 +85,9 @@ Result_median = pd.DataFrame(np.zeros((len(Rou_list), Result.shape[1])),
                              index=[str(i)[:4] for i in Rou_list])
 for indicator in Result.columns:
     for Rou in Rou_list:
-        Result_median.loc[str(Rou)[:4]][indicator] = \
-            np.median(Result.loc[str(Rou)[:4]][indicator])
+        median = Result.loc[str(Rou)[:4]][indicator]
+        median = np.median(median[~np.isnan(median)])
+        Result_median.loc[str(Rou)[:4]][indicator] = median
     print(Result_median.index[np.argmin(Result_median[indicator])])
     plt.plot(Result_median[indicator], label=indicator)
     plt.legend()
