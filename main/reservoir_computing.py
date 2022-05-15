@@ -3,8 +3,6 @@ import matplotlib.pyplot as plt
 from nolitsa import lyapunov, data
 from tqdm import tqdm
 
-from outer_function import poly_fit
-
 
 # Data Module
 lorenz = data.lorenz  # Lorenz System
@@ -26,8 +24,31 @@ def sprott(length, sample, x0, discard=0):
     sol = sol[discard:, :]
     
     return time, sol
+
+
+def kuramoto(length, sample, x0, omega, k, discard=0):
     
+    n = len(x0)
+    time = np.linspace(sample, sample * length, length)
     
+    def kuramoto_ode(y, _):
+        dydt = []
+        for i in range(n):
+            derivative = omega[i]
+            for j in range(n):
+                derivative += k / n * np.sin(y[j] - y[i])
+            dydt.append(derivative)
+        return dydt
+
+    from scipy.integrate import odeint
+    sol = odeint(kuramoto_ode, x0, time)
+    sol = sol[discard:, :]
+    
+    sol = np.sin(sol)
+    
+    return time, sol
+
+
 # Reservoir Construction Module
 def initial_reservoir(n_1, n_2, random_type, low=0.0, high=0.0):
     reservoir = np.zeros((n_1, n_2))
@@ -218,7 +239,12 @@ def train(n, d, rou, sigma, beta, trajectory_training, plot=True,
         return (np.dot(w_01, basis_function_1(r.T)) + np.dot(w_02, basis_function_2(r.T))).T
 
     if plot:
-        plot_trajectory(y, output_training)
+        if d == 3:
+            plot_trajectory(y, output_training)
+        else:
+            plt.figure()
+            plt.plot(y, c='r')
+            plt.plot(output_training, c='b', ls='--')
 
     return w_r, w_i, f_out, reservoir_state_training, output_training
 
@@ -235,7 +261,12 @@ def predict(w_r, w_i, f_out, trajectory_predicting, reservoir_state_predicting,
         output_predicting[i, :] = f_out(reservoir_state_predicting[i, :])
 
     if plot:
-        plot_trajectory(trajectory_predicting, output_predicting)
+        if trajectory_predicting.shape[1] == 3:
+            plot_trajectory(trajectory_predicting, output_predicting)
+        else:
+            plt.figure()
+            plt.plot(trajectory_predicting, c='r')
+            plt.plot(output_predicting, c='b', ls='--')
         
         if save_path:
             plt.savefig(save_path, format='svg')
@@ -246,8 +277,9 @@ def predict(w_r, w_i, f_out, trajectory_predicting, reservoir_state_predicting,
 
 # Evaluation Module
 def error_evaluate(trajectory_target, trajectory_output, time, time_start=0, time_end=0, plot=True, save_path=''):
-    if time == 0:
-        time = np.array(list(range(trajectory_target.shape[0])), dtype=int)
+    if len(time) == 1:
+        if time == 0:
+            time = np.array(list(range(trajectory_target.shape[0])), dtype=int)
     difference = trajectory_target - trajectory_output
     if time_end == 0:
         time_end = min(len(trajectory_target), len(trajectory_output))
@@ -261,9 +293,9 @@ def error_evaluate(trajectory_target, trajectory_output, time, time_start=0, tim
 
     if plot:
         plt.figure()
-        plt.plot(time[time_start:time_end], distance)
         plt.text(0, max(distance) / 2, 'RMSE = %.2f\nNRMSE = %.2f\nMAPE = %.2f' % (rmse, nrmse, mape))
-
+        plt.plot(time[time_start:time_end], distance)
+        
         if save_path:
             plt.savefig(save_path, format='svg')
             plt.close()
@@ -358,8 +390,9 @@ def self_predict_teacher(w_r, w_i, f_out, trajectory_predicting, reservoir_state
 def lle_lorenz(trajectory, dt=0.01, maxt=250, window=30):
     divergence = lyapunov.mle(trajectory, maxt=maxt, window=window)
     max_t = np.arange(maxt) * dt
-    coef = poly_fit(max_t, divergence, 1)[0]
-    return coef
+    # coef = poly_fit(max_t, divergence, 1)[0]
+    # return coef
+    pass
 
 
 def train_reservoir(n, rou, sigma, alpha, beta, probability, symmetry, antisymmetry, trajectory_training, plot=True,
