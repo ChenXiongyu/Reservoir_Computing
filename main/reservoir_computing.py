@@ -201,12 +201,14 @@ def plot_trajectory(trajectory_1, trajectory_2=np.array([]), save_path=''):
 def train(n, d, rou, sigma, beta, trajectory_training, plot=True,
           activation_function=np.tanh, 
           basis_function_1=original, basis_function_2=np.square, 
-          discard=1000):
+          discard=1000, unobservable=0):
     # print('Train Process...')
     w_r_function = reservoir_construction_fix_degree
     w_i_function = reservoir_construction_average_allocate
-
-    w_r = w_r_function(n, n, 'uniform', d, sr=rou,  low=0.0, high=1.0)
+    
+    d = d - unobservable
+    degree = 3
+    w_r = w_r_function(n, n, 'uniform', degree, sr=rou,  low=0.0, high=1.0)
     w_i = w_i_function(n, d, 'uniform', low=-sigma, high=sigma)
 
     reservoir_start = np.zeros(n)
@@ -215,7 +217,7 @@ def train(n, d, rou, sigma, beta, trajectory_training, plot=True,
 
     for i in range(1, len(trajectory_training)):
         reservoir_state_training[i, :] = activation_function(np.dot(w_r, reservoir_state_training[i - 1, :]) +
-                                                             np.dot(w_i, trajectory_training[i - 1, :]))
+                                                             np.dot(w_i, trajectory_training[i - 1, :d]))
 
     x = reservoir_state_training[discard:, :]
     y = trajectory_training[discard:, :]
@@ -239,7 +241,7 @@ def train(n, d, rou, sigma, beta, trajectory_training, plot=True,
         return (np.dot(w_01, basis_function_1(r.T)) + np.dot(w_02, basis_function_2(r.T))).T
 
     if plot:
-        if d == 3:
+        if d + unobservable == 3:
             plot_trajectory(y, output_training)
         else:
             plt.figure()
@@ -258,7 +260,8 @@ def train_parallel(n, d, rou, sigma, beta, trajectory_training, function_activat
         w_r_function = reservoir_construction_fix_degree
         w_i_function = reservoir_construction_average_allocate
 
-        w_r = w_r_function(n, n, 'uniform', d, sr=rou,  low=0.0, high=1.0)
+        degree = 3
+        w_r = w_r_function(n, n, 'uniform', degree, sr=rou,  low=0.0, high=1.0)
         w_i = w_i_function(n, d, 'uniform', low=-sigma, high=sigma)
 
         reservoir_start = np.zeros(n)
@@ -331,13 +334,15 @@ def train_parallel(n, d, rou, sigma, beta, trajectory_training, function_activat
 
 def predict(w_r, w_i, f_out, trajectory_predicting, reservoir_state_predicting,
             activation_function=np.tanh, plot=True, save_path=''):
-    # print('Self Predicting Process...')
+    
+    d = w_i.shape[1]
+    
     output_predicting = np.zeros(trajectory_predicting.shape)
     output_predicting[0, :] = trajectory_predicting[0, :]
 
     for i in range(1, len(trajectory_predicting)):
         reservoir_state_predicting[i, :] = activation_function(np.dot(w_r, reservoir_state_predicting[i - 1, :]) +
-                                                               np.dot(w_i, output_predicting[i - 1, :]))
+                                                               np.dot(w_i, output_predicting[i - 1, :d]))
         output_predicting[i, :] = f_out(reservoir_state_predicting[i, :])
 
     if plot:

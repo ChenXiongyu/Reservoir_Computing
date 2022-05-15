@@ -5,15 +5,16 @@ import warnings
 warnings.filterwarnings('ignore')
 
 # Trajectory
-Function_trajectory = rc.sprott
+Function_trajectory = rc.roessler
 
 # Capacity
 Capacity_training = 5000
-Capacity_predicting = 1500
+Capacity_predicting = 1000
 
 # Parameters
 N = 1000
 D = 3
+D_unobservable = 1
 Beta = 1e-4
 Sigma = 1
 Rou = 0.1
@@ -21,7 +22,7 @@ Rou = 0.1
 # Function
 Function_activation = rc.soft_plus
 Function_basis_1 = rc.original
-Function_basis_2 = rc.square
+Function_basis_2 = rc.original
 
 # Training Process
 Start_pos = list(np.random.rand(int(D)))
@@ -33,7 +34,8 @@ W_r, W_i, F_out, Reservoir_state_training, Output_training = \
     rc.train(N, D, Rou, Sigma, Beta, Trajectory_training, plot=True,
              basis_function_1=Function_basis_1, 
              basis_function_2=Function_basis_2,
-             activation_function=Function_activation)
+             activation_function=Function_activation, 
+             unobservable=D_unobservable)
 
 # Predicting Process
 Time_predicting, Trajectory_predicting = \
