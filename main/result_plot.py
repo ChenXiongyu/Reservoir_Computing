@@ -9,7 +9,7 @@ warnings.filterwarnings('ignore')
 
 Function_list = [rc.elu, rc.tanh, rc.soft_plus, rc.prelu, rc.relu, rc.sigmoid]
 for Function_activation in Function_list:
-    Path = f'Result/Activation/Sprott/{Function_activation.__name__}'
+    Path = f'Result/Activation/Roessler/{Function_activation.__name__}'
     Result = pd.read_csv(Path + f'/result_{Function_activation.__name__}.csv', index_col=0)
     Rou_list = np.unique(Result.index)
     plt.figure(figsize=(10, 5))
