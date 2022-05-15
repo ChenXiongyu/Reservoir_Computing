@@ -10,59 +10,13 @@ import warnings
 warnings.filterwarnings('ignore')
 
 
-def rc_model(capacity, trajectory, start, rou, activation):
-    capacity_training = capacity['training']
-    capacity_predicting = capacity['predicting']
-
-    # Parameters
-    n = 1000
-    d = len(start)
-
-    beta = 1e-4
-    sigma = 1
-
-    # Function
-    function_basis_1 = rc.original
-    function_basis_2 = rc.square
-
-    # Training Process
-    _, trajectory_training = \
-        trajectory(length=capacity_training, sample=0.01, 
-                   x0=start, discard=0)
-
-    w_r, w_i, f_out, reservoir_state_training, _ = \
-        rc.train(n, d, rou, sigma, beta, trajectory_training, 
-                 plot=False,
-                 basis_function_1=function_basis_1, 
-                 basis_function_2=function_basis_2,
-                 activation_function=activation)
-
-    # Predicting Process
-    time_predicting, trajectory_predicting = \
-        trajectory(length=capacity_predicting, 
-                   sample=0.01, discard=0,
-                   x0=list(trajectory_training[-1, :]))
-
-    reservoir_state_predicting = np.zeros((capacity_predicting, n))
-    reservoir_state_predicting[0, :] = reservoir_state_training[-1, :]
-
-    output_predicting = \
-        rc.predict(w_r, w_i, f_out, trajectory_predicting, 
-                reservoir_state_predicting,
-                activation_function=activation, 
-                plot=False)
-        
-    return (output_predicting, trajectory_predicting, time_predicting, 
-            w_r, w_i, f_out, reservoir_state_training[-1, :])
-
-
 # Capacity
 N = 1000
-Capacity = {'training': 5000, 'predicting': 500, 'coupling': 2000}
+Capacity = {'training': 5000, 'predicting': 100, 'coupling': 1500}
 
 
 Ranking = pd.DataFrame()
-for Times in tqdm(range(1)):
+for Times in tqdm(range(5)):
     while True:
         # Trajectory
         D = 3
@@ -83,9 +37,7 @@ for Times in tqdm(range(1)):
 
         # Function
         Function_list = [rc.elu, rc.soft_plus, rc.prelu, 
-                        rc.relu, rc.tanh, rc.sigmoid, 
-                        rc.elu, rc.soft_plus, rc.prelu, 
-                        rc.relu, rc.tanh, rc.sigmoid, ]
+                        rc.relu, rc.tanh, rc.sigmoid]
         Evaluation = pd.DataFrame()
         Distance = np.zeros((Capacity['coupling'], len(Function_list) + 2))
 
@@ -102,8 +54,8 @@ for Times in tqdm(range(1)):
             while True:
                 (Output_predicting, Trajectory_predicting, Time_predicting, 
                 w_r, w_i, f_out, reservoir_state_end)= \
-                    rc_model(Capacity, Function_trajectory, Start_pos, Rou, 
-                            Function_activation)
+                    rc.rc_model(Capacity, Function_trajectory, Start_pos, Rou, 
+                                Function_activation)
                 if np.sum(np.isnan(Output_predicting) | 
                             np.isinf(Output_predicting)) == 0:
                     break
@@ -216,5 +168,5 @@ for Times in tqdm(range(1)):
         
         break
 
-Ranking.to_csv('ranking.csv')
+# Ranking.to_csv('ranking.csv')
 print(Ranking)

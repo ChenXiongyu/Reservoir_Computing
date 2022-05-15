@@ -389,9 +389,54 @@ def predict_parallel(w_r, w_i, f_out, trajectory_predicting, reservoir_state_pre
     return output_predicting
 
 
+def rc_model(capacity, trajectory, start, rou, activation):
+    capacity_training = capacity['training']
+    capacity_predicting = capacity['predicting']
+
+    # Parameters
+    n = 1000
+    d = len(start)
+
+    beta = 1e-4
+    sigma = 1
+
+    # Function
+    function_basis_1 = original
+    function_basis_2 = square
+
+    # Training Process
+    _, trajectory_training = \
+        trajectory(length=capacity_training, sample=0.01, 
+                   x0=start, discard=0)
+
+    w_r, w_i, f_out, reservoir_state_training, _ = \
+        train(n, d, rou, sigma, beta, trajectory_training, plot=False,
+              basis_function_1=function_basis_1, 
+              basis_function_2=function_basis_2,
+              activation_function=activation)
+
+    # Predicting Process
+    time_predicting, trajectory_predicting = \
+        trajectory(length=capacity_predicting, 
+                   sample=0.01, discard=0,
+                   x0=list(trajectory_training[-1, :]))
+
+    reservoir_state_predicting = np.zeros((capacity_predicting, n))
+    reservoir_state_predicting[0, :] = reservoir_state_training[-1, :]
+
+    output_predicting = \
+        predict(w_r, w_i, f_out, trajectory_predicting, 
+                reservoir_state_predicting,
+                activation_function=activation, 
+                plot=False)
+        
+    return (output_predicting, trajectory_predicting, time_predicting, 
+            w_r, w_i, f_out, reservoir_state_training[-1, :])
+
+
 # Evaluation Module
 def error_evaluate(trajectory_target, trajectory_output, time, time_start=0, time_end=0, plot=True, save_path=''):
-    if len(time) == 1:
+    if type(time) == int:
         if time == 0:
             time = np.array(list(range(trajectory_target.shape[0])), dtype=int)
     difference = trajectory_target - trajectory_output
