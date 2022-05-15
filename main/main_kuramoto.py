@@ -8,9 +8,8 @@ warnings.filterwarnings('ignore')
 Function_trajectory = rc.kuramoto
 
 # Capacity
-Discard = 2000
 Capacity_training = 5000
-Capacity_predicting = 1000
+Capacity_predicting = 2000
 
 # Parameters
 N = 1000
@@ -20,7 +19,7 @@ Sigma = 1
 Rou = 0.1
 
 # Function
-Function_activation = rc.soft_plus
+Function_activation = rc.tanh
 Function_basis_1 = rc.sin
 Function_basis_2 = rc.cos
 
@@ -29,20 +28,20 @@ Start_pos = list(2 * np.pi * np.random.rand(int(D)))
 Omega = np.ones(D)
 Omega[:2] = 0.9
 Omega[2:5] = 0.6
-Omega[5:] = 0.4
-K = 0.5
+Omega[5:8] = 0.4
+Omega[8:] = 0.1
+K = 2
 
 Time, Trajectory = \
     Function_trajectory(length=Capacity_training + Capacity_predicting, 
-                        sample=0.01, x0=Start_pos, omega=Omega, k=K, 
-                        discard=Discard)
+                        sample=0.01, x0=Start_pos, omega=Omega, k=K)
     
 Time_training, Trajectory_training = \
-    (Time[:(Capacity_training - Discard)], 
-     Trajectory[:(Capacity_training - Discard), :])
+    (Time[:Capacity_training], 
+     Trajectory[:Capacity_training, :])
 Time_predicting, Trajectory_predicting = \
-    (Time[(Capacity_training - Discard):] - Time[(Capacity_training - Discard)], 
-     Trajectory[(Capacity_training - Discard):, :])
+    (Time[Capacity_training:] - Time[Capacity_training], 
+     Trajectory[Capacity_training:, :])
 
 W_r, W_i, F_out, Reservoir_state_training, Output_training = \
     rc.train(N, D, Rou, Sigma, Beta, Trajectory_training, plot=True,

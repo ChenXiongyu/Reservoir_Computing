@@ -249,6 +249,86 @@ def train(n, d, rou, sigma, beta, trajectory_training, plot=True,
     return w_r, w_i, f_out, reservoir_state_training, output_training
 
 
+def train_parallel(n, d, rou, sigma, beta, trajectory_training, function_activation, 
+                   function_basis_1=original, function_basis_2=square, plot=True, discard=1000):
+    
+    
+    def reservoir_single(n, d, rou, sigma, trajectory_training, activation_function):
+        # print('Train Process...')
+        w_r_function = reservoir_construction_fix_degree
+        w_i_function = reservoir_construction_average_allocate
+
+        w_r = w_r_function(n, n, 'uniform', d, sr=rou,  low=0.0, high=1.0)
+        w_i = w_i_function(n, d, 'uniform', low=-sigma, high=sigma)
+
+        reservoir_start = np.zeros(n)
+        reservoir_state_training = np.zeros((len(trajectory_training), len(reservoir_start)))
+        reservoir_state_training[0, :] = reservoir_start
+
+        for i in range(1, len(trajectory_training)):
+            reservoir_state_training[i, :] = activation_function(np.dot(w_r, reservoir_state_training[i - 1, :]) +
+                                                                np.dot(w_i, trajectory_training[i - 1, :]))
+
+
+        return w_r, w_i, reservoir_state_training
+
+
+    def reservoir_regression(beta, trajectory_training, reservoir_state_training, plot, 
+                             basis_function_1, basis_function_2, discard):
+        x = reservoir_state_training[discard:, :]
+        y = trajectory_training[discard:, :]
+
+        s = x.copy()
+        s[:, ::2] = basis_function_1(s[:, ::2])
+        s[:, 1::2] = basis_function_2(s[:, 1::2])
+        w_0 = np.linalg.solve(np.dot(s.T, s) + beta * np.eye(s.shape[1]), np.dot(s.T, y))
+        w_0 = w_0.T
+
+        w_01 = np.zeros(w_0.shape)
+        w_02 = np.zeros(w_0.shape)
+
+        w_01[:, ::2] = w_0[:, ::2]
+        w_02[:, 1::2] = w_0[:, 1::2]
+
+        output_training = np.dot(w_01, basis_function_1(x.T)) + np.dot(w_02, basis_function_2(x.T))
+        output_training = output_training.T
+
+        def f_out(r):
+            return (np.dot(w_01, basis_function_1(r.T)) + np.dot(w_02, basis_function_2(r.T))).T
+
+        if plot:
+            plot_trajectory(y, output_training)
+        
+        return f_out, output_training
+
+
+    reservoir_state_training = []
+    w_r = []
+    w_i = []
+    for r in range(len(n)):
+        
+        n_r = n[r]
+        rou_r = rou[r]
+        sigma_r = sigma[r]
+        function_activation_r = function_activation[r]
+        
+        w_r_r, w_i_r, reservoir_state_training_r = \
+            reservoir_single(n_r, d, rou_r, sigma_r, trajectory_training,
+                             activation_function=function_activation_r)
+        reservoir_state_training.append(reservoir_state_training_r)
+        w_r.append(w_r_r)
+        w_i.append(w_i_r)
+
+    reservoir_state_training_stack = np.hstack(reservoir_state_training)
+
+    f_out, output_training = \
+        reservoir_regression(beta, trajectory_training, reservoir_state_training_stack, plot, 
+                             basis_function_1=function_basis_1, basis_function_2=function_basis_2, 
+                             discard=discard)
+
+    return w_r, w_i, f_out, reservoir_state_training, output_training
+
+
 def predict(w_r, w_i, f_out, trajectory_predicting, reservoir_state_predicting,
             activation_function=np.tanh, plot=True, save_path=''):
     # print('Self Predicting Process...')
@@ -271,6 +351,40 @@ def predict(w_r, w_i, f_out, trajectory_predicting, reservoir_state_predicting,
         if save_path:
             plt.savefig(save_path, format='svg')
             plt.close()
+
+    return output_predicting
+
+
+def predict_parallel(w_r, w_i, f_out, trajectory_predicting, reservoir_state_predicting,
+                     function_activation, plot=True, save_path=''):
+
+    
+    output_predicting = np.zeros(trajectory_predicting.shape)
+    output_predicting[0, :] = trajectory_predicting[0, :]
+
+    for i in range(1, len(trajectory_predicting)):
+        for r in range(len(function_activation)):
+            function_activation_r = function_activation[r]
+            w_r_r = w_r[r]
+            w_i_r = w_i[r]
+            reservoir_state_predicting[r][i, :] = function_activation_r(
+                np.dot(w_r_r, reservoir_state_predicting[r][i - 1, :]) + 
+                np.dot(w_i_r, output_predicting[i - 1, :]))
+        reservoir_state_predicting_stack = np.hstack(reservoir_state_predicting)
+        output_predicting[i, :] = f_out(reservoir_state_predicting_stack[i, :])
+
+    if plot:
+        if trajectory_predicting.shape[1] == 3:
+            plot_trajectory(trajectory_predicting, output_predicting)
+        else:
+            plt.figure()
+            plt.plot(trajectory_predicting, c='r')
+            plt.plot(output_predicting, c='b', ls='--')
+        
+        if save_path:
+            plt.savefig(save_path, format='svg')
+            plt.close()
+
 
     return output_predicting
 
@@ -302,6 +416,25 @@ def error_evaluate(trajectory_target, trajectory_output, time, time_start=0, tim
         
     result = {'RMSE': rmse, 'nrmse': nrmse, 'mape': mape}
     return distance, result
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
