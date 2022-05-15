@@ -394,6 +394,41 @@ def predict_parallel(w_r, w_i, f_out, trajectory_predicting, reservoir_state_pre
     return output_predicting
 
 
+def predict_coupled(w_r, w_i, reservoir_state_predicting, trajectory_predicting,
+                    f_out, function_activation, coupled_weights, noise_strength, 
+                    reversed_weights=False):
+
+    coupled_weights = np.array(coupled_weights, dtype=float)
+    if reversed_weights:
+        coupled_weights = 1 - coupled_weights
+        coupled_weights = coupled_weights / sum(coupled_weights)
+        
+    output_predicting = []
+    for r in range(len(f_out)):
+        trajectory_predicting_r = trajectory_predicting[r]
+        output_predicting_r = np.zeros(trajectory_predicting_r.shape)
+        output_predicting_r[0, :] = trajectory_predicting_r[0, :]
+        output_predicting.append(output_predicting_r)
+
+    
+    length = min([len(i) for i in trajectory_predicting])
+    output_coupled = np.zeros((length, trajectory_predicting_r.shape[1]))
+    for r in range(len(f_out)):
+        output_coupled[0, :] += coupled_weights[r] * output_predicting[r][0, :]
+
+    for i in range(1, length):
+        for r in range(len(f_out)):
+            function_activation_r = function_activation[r]
+            reservoir_state_predicting[r][i, :] = \
+                function_activation_r(np.dot(w_r[r], reservoir_state_predicting[r][i - 1, :]) +
+                                      np.dot(w_i[r], output_coupled[i - 1, :] + 
+                                             noise_strength * np.random.rand(3)))
+            output_predicting[r][i, :] = f_out[r](reservoir_state_predicting[r][i, :])
+            output_coupled[i, :] += coupled_weights[r] * output_predicting[r][i, :]
+
+    return output_coupled, output_predicting
+
+
 def rc_model(capacity, trajectory, start, rou, activation):
     capacity_training = capacity['training']
     capacity_predicting = capacity['predicting']
@@ -488,34 +523,6 @@ def error_evaluate(trajectory_target, trajectory_output, time, time_start=0, tim
 
 
 
-
-
-def coupled_predict(w_r_1, w_i_1, f_out_1, reservoir_state_predicting_1, trajectory_predicting_1,
-                    w_r_2, w_i_2, f_out_2, reservoir_state_predicting_2, trajectory_predicting_2,
-                    coupled_strength, noise_strength, activation_function=np.tanh):
-    output_predicting_1 = np.zeros(trajectory_predicting_1.shape)
-    output_predicting_2 = np.zeros(trajectory_predicting_2.shape)
-    output_predicting_1[0, :] = trajectory_predicting_1[0, :]
-    output_predicting_2[0, :] = trajectory_predicting_2[0, :]
-
-    for i in range(1, len(trajectory_predicting_1)):
-        reservoir_state_predicting_1[i, :] = \
-            activation_function(np.dot(w_r_1, reservoir_state_predicting_1[i - 1, :]) +
-                                np.dot(w_i_1,
-                                       coupled_strength * output_predicting_2[i - 1, :] +
-                                       (1 - coupled_strength) * output_predicting_1[i - 1, :] +
-                                       noise_strength * np.random.rand(3)))
-        reservoir_state_predicting_2[i, :] = \
-            activation_function(np.dot(w_r_2, reservoir_state_predicting_2[i - 1, :]) +
-                                np.dot(w_i_2,
-                                       coupled_strength * output_predicting_1[i - 1, :] +
-                                       (1 - coupled_strength) * output_predicting_2[i - 1, :] +
-                                       noise_strength * np.random.rand(3)))
-
-        output_predicting_1[i, :] = f_out_1(reservoir_state_predicting_1[i, :])
-        output_predicting_2[i, :] = f_out_2(reservoir_state_predicting_2[i, :])
-
-    return output_predicting_1, output_predicting_2
 
 
 def train_teacher(n, d, rou, sigma, alpha, beta, trajectory_training, activation_function=np.tanh, plot=True):
