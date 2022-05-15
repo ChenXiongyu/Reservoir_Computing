@@ -44,8 +44,6 @@ def kuramoto(length, sample, x0, omega, k, discard=0):
     sol = odeint(kuramoto_ode, x0, time)
     sol = sol[discard:, :]
     
-    sol = np.sin(sol)
-    
     return time, sol
 
 
@@ -372,9 +370,10 @@ def predict_parallel(w_r, w_i, f_out, trajectory_predicting, reservoir_state_pre
             function_activation_r = function_activation[r]
             w_r_r = w_r[r]
             w_i_r = w_i[r]
+            d_r = w_i_r.shape[1]
             reservoir_state_predicting[r][i, :] = function_activation_r(
                 np.dot(w_r_r, reservoir_state_predicting[r][i - 1, :]) + 
-                np.dot(w_i_r, output_predicting[i - 1, :]))
+                np.dot(w_i_r, output_predicting[i - 1, :d_r]))
         reservoir_state_predicting_stack = np.hstack(reservoir_state_predicting)
         output_predicting[i, :] = f_out(reservoir_state_predicting_stack[i, :])
 
@@ -397,6 +396,7 @@ def predict_parallel(w_r, w_i, f_out, trajectory_predicting, reservoir_state_pre
 def predict_coupled(w_r, w_i, reservoir_state_predicting, trajectory_predicting,
                     f_out, function_activation, coupled_weights, noise_strength, 
                     reversed_weights=False):
+    
 
     coupled_weights = np.array(coupled_weights, dtype=float)
     if reversed_weights:
@@ -418,11 +418,13 @@ def predict_coupled(w_r, w_i, reservoir_state_predicting, trajectory_predicting,
 
     for i in range(1, length):
         for r in range(len(f_out)):
+            w_i_r = w_i[r]
+            d_r = w_i_r.shape[1]
             function_activation_r = function_activation[r]
             reservoir_state_predicting[r][i, :] = \
                 function_activation_r(np.dot(w_r[r], reservoir_state_predicting[r][i - 1, :]) +
-                                      np.dot(w_i[r], output_coupled[i - 1, :] + 
-                                             noise_strength * np.random.rand(3)))
+                                      np.dot(w_i_r, output_coupled[i - 1, :d_r] + 
+                                             noise_strength * np.random.rand(d_r)))
             output_predicting[r][i, :] = f_out[r](reservoir_state_predicting[r][i, :])
             output_coupled[i, :] += coupled_weights[r] * output_predicting[r][i, :]
 

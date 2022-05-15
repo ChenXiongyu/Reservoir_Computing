@@ -37,6 +37,7 @@ K = 1
 Time, Trajectory = \
     Function_trajectory(length=Capacity_training + Capacity_predicting, 
                         sample=0.01, x0=Start_pos, omega=Omega, k=K)
+Trajectory = np.sin(Trajectory)
 Time_training, Trajectory_training = \
     (Time[:Capacity_training], 
      Trajectory[:Capacity_training, :])
