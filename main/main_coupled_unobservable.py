@@ -19,7 +19,7 @@ D_unobservable = 7
 Beta = 1e-4 * np.ones(len(N))
 Sigma = np.ones(len(N))
 Rou = [0.1, 0.1, 0.1, 0.1, 0.1]
-Coupled_weights = [0.2, 0.2, 0.2, 0.2, 0.2]
+Coupled_weights = [0, 0, 0, 0, 1]
 Noise_strength = 0
 
 
@@ -111,7 +111,7 @@ Trajectory_coupled = np.sin(Trajectory_coupled)
 #     rc.error_evaluate(Output_coupled[Steps:], Trajectory_coupled, 0, plot=True)
 # Evaluation = Evaluation.append(pd.DataFrame(Evaluation_coupled, index=['coupled']))
 
-plt.figure()
-_ = plt.plot(Trajectory_coupled, c='r')
+# plt.figure()
+# _ = plt.plot(Trajectory_coupled, c='r')
 plt.figure()
 _ = plt.plot(Output_coupled, c='b', ls='--')
