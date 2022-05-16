@@ -16,7 +16,7 @@ N = 1000
 D = 3
 Beta = 1e-4
 Sigma = 1
-Rou = 0.1
+Rou = 0.4
 
 # Function
 Function_activation = rc.soft_plus
@@ -54,3 +54,10 @@ Output_predicting = \
 Distance, Evaluation = rc.error_evaluate(Trajectory_predicting, 
                                          Output_predicting,
                                          Time_predicting, plot=True)
+
+import matplotlib.pyplot as plt
+fig = plt.figure()
+ax = fig.add_subplot(projection='3d')
+ax.plot(Trajectory_predicting[:, 0], Trajectory_predicting[:, 1], Trajectory_predicting[:, 2], c='r')
+ax.plot(Output_predicting[:, 0], Output_predicting[:, 1], Output_predicting[:, 2], c='b', ls='--')
+plt.savefig('Sprott.svg', format='svg')
