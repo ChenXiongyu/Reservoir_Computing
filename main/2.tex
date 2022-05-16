@@ -1,0 +1,506 @@
+\documentclass[notitlepage,cs4size,punct,oneside]{ctexrep}
+
+\usepackage[a4paper,hmargin={3.18cm,3.18cm},vmargin={2.54cm, 2.54cm}]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{titlesec}
+\usepackage{color}
+\usepackage[runin]{abstract}
+\usepackage[pdfborder={0 0 0},colorlinks=False,CJKbookmarks=true]{hyperref}
+\usepackage{fancyhdr}
+\usepackage{setspace}
+\usepackage{graphicx}
+
+\pagestyle{plain}
+\setstretch{1.41} 
+
+\setlength{\absleftindent}{1.5cm} \setlength{\absrightindent}{1.5cm}
+\setlength{\abstitleskip}{-\parindent}
+\setlength{\absparindent}{0cm}
+
+\numberwithin{equation}{chapter}
+
+\newtheoremstyle{mystyle}{3pt}{3pt}{\kaishu}{0cm}{\heiti}{}{1em}{}
+\theoremstyle{mystyle}
+\newtheorem{definition}{\hspace{2em}定义}[chapter]
+\newtheorem{theorem}[definition]{\hspace{2em}定理}
+\newtheorem{axiom}[definition]{\hspace{2em}公理}
+\newtheorem{lemma}[definition]{\hspace{2em}引理}
+\newtheorem{proposition}[definition]{\hspace{2em}命题}
+\newtheorem{corollary}[definition]{\hspace{2em}推论}
+\newtheorem{remark}{\hspace{2em}注}[chapter]
+\def\theequation{\arabic{chapter}.\arabic{equation}}
+\def\thedefinition{\arabic{chapter}.\arabic{definition}.}
+
+\title{{\zihao{1}\heiti{} 数学学院毕业论文模版}}
+\author{陈熊宇\\学号：18300180076\\专业：数学与应用数学\\指导老师：林伟}
+
+\date{}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+
+\CTEXsetup[nameformat={\zihao{3}\heiti},%
+           titleformat={\zihao{3}},%
+           beforeskip={0.8cm},afterskip={1.2cm}]{chapter}
+\CTEXsetup[format={\centering\zihao{-3}\heiti},%
+           name={第,节},number={\arabic{section}}]{section}
+\CTEXsetup[format={\zihao{-4}},%
+           number={\arabic{section}.\arabic{subsection}.},%
+           beforeskip={0.4cm},afterskip={0.4cm}]{subsection}
+\CTEXoptions[contentsname={\heiti{目\ \ \ \ \ \ 录}}]
+\CTEXoptions[abstractname={摘要：}]
+\CTEXoptions[bibname={\heiti 参考文献}]
+
+\renewcommand{\thepage}{\roman{page}}
+
+\setcounter{page}{0}
+
+\tableofcontents
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\maketitle\renewcommand{\thepage}{\arabic{page}}
+\thispagestyle{empty}\setcounter{page}{0}
+
+\renewcommand{\abstractname}{摘要}
+\begin{abstract}
+这是我的中文摘要\\
+\noindent{\heiti 关键字:} 正文写法, 公式写法, 参考文献写法.
+\end{abstract}
+\renewcommand{\abstractname}{Abstract}
+\begin{abstract}
+This is my English abstract.\\
+\noindent{\textbf{Keywords:}} 正文写法, 公式写法, 参考文献写法.
+\end{abstract}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{绪论}
+
+\section{研究背景及意义}
+
+机器学习作为人工智能其中的一个分支, 关键在于其具备学习能力. 
+近年来, 随着机器计算能力的不断发展, 数值预测模拟模型的实际意义大大增加，
+机器学习依赖大量数据的特性在时代背景下大放光彩, 推进了一些公开的问题的进展. 
+
+一直以来, 复杂的动力系统的演化规律是人们关注的焦点. 
+在实验研究中, 非线性动力系统常常扮演了重要的角色. 
+很多时间序列, 包括化学反应系统, 生物神经系统等等都与非线性动力系统有关,
+这些系统只能在一定时间内进行测量, 而且目前对于其数学表达形式往往不清楚, 
+或者已经有类似化学主方程的模型, 但由于其计算量过大, 仍然无法从取得确切的数值解. 
+因此在不知道数学表达形式的情况下, 预测这些系统未来如何演化成为了一个非常有价值的问题.
+机器学习对此给出了一定的回答, 例如利用神经网络进行天气预测\cite{VKMF}等等. 
+
+机器学习突破了具体模型的限制, 拟合未知函数的效果具有显著优势, 
+其中神经网络的作用不可忽视. 神经网络最初希望通过模拟生物神经元的电位变化, 
+实现类似生物神经网络的学习, 随着计算机神经网络的设计越发复杂, 机器学习神经网络的
+方法突破了模拟生物神经网络的范畴, 逐渐成为一个成熟的模型. 
+
+储备池计算(Reservoir Computing)是一种由数据驱动的神经网络, 
+通过储备池(Reservoir)中大量神经元的演化, 学习模拟各种动力系统. 
+储备池相较于其他神经网络, 优势在于其内部构造以及训练过程的简单性, 
+这一特点使得训练储备池神经元的速度提升, 并且赋予其在神经网络物理实现上的灵活性\cite{YTJK}, 
+尤其适合边缘计算(Edge Computing)需要轻量化的特点\cite{WSJC}.
+
+在这样的背景下, 储备池计算迅速得到发展. 
+其中一个研究方向是对于储备池计算可塑性的研究, 
+即研究储备池计算在具体问题下的最优网络设置, 包括对于储备池的研究, 训练规则的研究等等, 
+从而根据提前设定的最优网络, 对具体应用场景给出事半功倍的效果; 
+另一个研究方向是研究储备池实现的同步现象, 储备池的训练过程本质上是将
+储备池输出和输入同步的过程\cite{QZHM}, 实现同步之后则可对未来进行预测. 
+同步现象常见于各种物理, 化学, 生物系统中, 
+例如在耦合的混沌振子中可以实现各种同步现象, 包括完全同步\cite{LPTC}, 相位同步\cite{MRAP}等. 
+因此对储备池计算同步现象的研究有利于进一步理解储备池计算背后的理论依据. 
+
+
+\section{国内外的研究现状}
+
+虽然非线性动力系统作为确定性系统, 但经常其存在混沌现象, 非常依赖初值的准确性, 
+这使得混沌现象的预测难度非常大. 早期机器学习需要不断地去调整权重参数进行学习, 
+学习过程非常缓慢, 学习效果也一般. 之后液体状态机\cite{WMTN}和回声状态网络\cite{HJ}
+被相继提出, 储备池计算就在此基础上被提出, 并给这一难题提供了一种解决方法. 
+
+储备池计算的想法是随机生成神经网络的内部结构, 在固定网络内部结构的基础上, 
+只通过训练其输出层的权重来达到学习的目的. 
+Schrauwen等人总结了储备池计算的整体框架, 
+指出任何高维驱动的动态方式都可以作为储层计算的学习对象, 
+使得仅使用线性处理就能解决复杂的任务\cite{BSDV}; 
+Pathak等人利用储备池计算对时空混沌系统数据进行了预测, 
+证明了储备池计算进行无模型预测的有效性, 
+其展示了该模型可以被推广到其他混沌系统的预测中\cite{JPBH}. 
+Fan等人将一组时间序列数据输入储备池计算框架中, 
+证明了其为各种混沌系统提供任意长的预测范围\cite{JFJJ}. 
+可见储备池计算是一种非常灵活, 有效的机器学习框架. 
+
+储备池计算的有效性已经得到充分的说明, 其可塑性也具有很大的发展潜力, 产生了诸多研究成果. 
+一个比较直观的是储备池的可塑性, 即改变内部神经元的连接结构, 从而提高预测效果. 
+Griffith等人研究了储备池中神经元的连接性, 发现当神经网络相对稀疏, 
+单个神经元仅与其他少部分神经元有相互作用时, 
+储备池计算有更好的表现, 
+稀疏矩阵的计算不仅有利于增加神经元个数, 扩大训练数据规模, 
+还有利于进一步提高神经元更新速度\cite{AGAP}; 
+还可以对神经元的演化方式进行调整, 
+Carrol尝试改变神经元迭代更新的方程, 提供了储备池计算在预测Sprott系统时的一些
+超参数设定, 分析其对神经元个数和噪声的依赖性\cite{TLC}; 
+储备池计算由于简明的结构, 其可塑性还体现在可以生物神经元的特性引入, 
+Morales等人受生物神经元可塑性规则启发, 将其运用到储备池计算中, 
+并结合突触和非突触的可塑性规则两种不同形式的神经元可塑性规则, 
+提高了原始模型的性能表现\cite{GBMC}; 
+另外, 在改变储备池计算网络设计的同时, 可以利用储备池计算的特性完成特定的任务, 
+Wendson等人发现了可以利用储备池计算的对称性质, 完成对称性识别任务, 
+相比于其他模型具有优势\cite{WASB}. 
+更进一步, 类似深度学习的思想, 还可以将多个储备池进行组合得到更加复杂的网络, 例如 
+Moon等人总结了分层储备池结构对其性质和性能的影响, 发现将多个储备池串联堆叠, 
+得到继承性的储备池网络, 其具有一定的加强作用\cite{JMYW}. 
+
+通过改造储备池结构提高性能的同时, 对于储备池有效性的原因的认识也在进一步加深, 
+其中很重要的角度是同步的概念. Fan实现的长期预测本质上实现了混沌系统和储备池神经元之间的同步, 
+其刻画了对于时间同步理论的物理模型\cite{JFJJ}; 
+Weng等人仅通过一个共同的标量信号也实现了两者之间的同步\cite{TWHY}, 并且
+进一步说明其同步的稳健性, 包括对于噪声的鲁棒性\cite{XCTW}. 
+而对于本身存在耦合现象的混沌动力系统的预测, Saha等人发现
+当仅输入网络的一个振荡节点的单输入数据用于学习时, 储备池计算
+能够预测其他节点的动态变化, 包括尖峰和突发\cite{SSAM}. 
+除了混沌系统和储备池之间的同步, 多个储备池之间的同步也是研究的对象, 
+Hu等人将两个储备池计算耦合，通过调整耦合强度，
+也在一定程度上实现了两者之间的同步\cite{WHYZ}.
+
+
+\section{论文研究思路}
+
+从上述研究现状可以看出, 储备池计算在最优结构设计方面仍有不少发展潜力, 
+并且也逐渐引发了耦合同步方面的进一步的理解. 
+后文将聚焦于上述两个方向, 第二章从引入储备池计算的框架出发, 
+介绍其基本设置, 包括储备池, 激活函数, 输出函数的定义, 
+阐释其训练阶段和预测阶段具体方法, 再介绍一种并联储备池网络的框架. 
+
+第三章将研究储备池计算的可塑性, 主要
+推广储备池计算中的激活函数, 输出函数, 分析对比神经网络中各种激活函数
+放入储备池计算框架后, 在一些具体非线性混沌动力系统预测问题下的表现, 对结果进行
+数值模拟, 误差分析, 观察将不同设置的储备池加入到并联储备池网络中能否起到提升作用. 
+
+第四章将关注储备池计算耦合同步的内容, 介绍储备池耦合的框架, 
+分析多个储备池之间耦合同步的条件, 考虑耦合中噪声的引入对于同步效果的影响. 
+
+第五章将集中分析在动力系统只具备部分可观性条件下的储备池计算的预测效果, 
+以藏本模型(Kuramoto model)为例, 将其部分变量输入到储备池中, 要求预测系统全局变量, 
+对各种设定进行数值实验. 在此之上再结合第四章耦合同步的概念, 分析部分变量的同步
+能否引发全局变量的同步, 同样对噪声进行鲁棒性分析, 从而进一步理解储备池耦合同步的条件, 
+加深对于非线性动力系统同步现象的认识.  
+
+第六章将对本文讨论的储备池计算框架的具体问题进行总结讨论, 分析其优劣势, 
+对其中的同步现象进行思考, 并展望未来的储备池计算, 非线性动力系统预测问题的发展. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{储备池计算介绍}
+储备池计算是神经网络的一种框架, 
+框架包括输入矩阵, 储备池矩阵, 输出矩阵, 激活函数, 输出函数等等. 
+使用包括训练阶段和预测阶段, 其中训练阶段是监督性的, 预测阶段可监督也可以无监督. 
+将多个储备池并联就可以得到并联储备池计算网络. 
+
+\section{储备池框架}
+储备池框架主要分为三大部分, 第一部分是输入层, 包含需要输入的时序数据$i(t)$, 
+输入矩阵$W_{in}$; 第二部分是储备池层, 包含神经元的状态变量$r(t)$, 储备池矩阵$W_{r}$, 
+激活函数$F_{act}$; 第三部分是输出层, 包含输出变量$o(t)$, 输出矩阵$W_{out}$, 
+输出函数$F_{out}$. 如图2.1所示. 
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[scale=0.4]{1.png}
+    \caption{储备池框架}
+\end{figure}
+
+假设对于某个时刻$t$来说, 
+$i(t)\in\mathbb{R}^{N_i}$, 
+$o(t)\in\mathbb{R}^{N_o}$, $r(t)\in\mathbb{R}^{N_r}$, 
+那么$W_{in}\in\mathbb{R}^{{N_r}\times{N_i}}$, 
+$W_{r}\in\mathbb{R}^{{N_r}\times{N_r}}$,
+$W_{out}\in\mathbb{R}^{{N_o}\times{N_r}}$,
+其中$N_i$是输入数据的维度, $N_r$是储备池中神经元个数, 
+$N_o$是输出数据维度. 
+
+另外再假设$t\in[0, T]$, $T>0$, 每次时间迭代步长为$\Delta t>0$. 不妨设$T=n\Delta t$. 
+因此可以将输入数据, 输出数据按时间进行列的叠加, 得到$[i(0), \dots, i(T)]$和$[o(0), \dots, o(T)]$, 
+设这两个拼接矩阵分别为$I\in\mathbb{R}^{{N_i}\times n}$, $O\in\mathbb{R}^{{N_o}\times{n}}$.
+
+
+\subsection{输入矩阵和储备池矩阵}
+假设$W_{in}$中的每个非零元素满足$[-\sigma, \sigma]$区间上的正态分布, 其中$\sigma>0$为参数. 
+而且假设$i(t)$每个分量对应相同数目的神经元, 即$W_{in}$每列具有相同数目的非零元素, 
+$W_{in}$中所有非零元素个数为$N_r$. 
+
+假设$W_{r}$中的每个非零元素满足$[0, 1]$区间上的正态分布. 
+研究表明储备池矩阵应具有稀疏性\cite{AGAP}, 限制每个神经元只能与固定个数的神经元有联系, 
+定义该参数为储备池矩阵的度(degree), 不妨固定为3, 即下个时刻神经元的状态由当前时刻某3个神经元的状态所决定, 
+那么$W_{r}$每行具有3个非零元素.  
+
+\subsection{激活函数}
+
+在储备池框架中, 激活函数一般设定为双曲正切函数$F_{act}=\tanh(x)$, 本文中将
+机器学习框架中其他几个常见的激活函数进行引入, 具体如下:
+
+\subsection{输出函数}
+
+\section{训练阶段和预测阶段}
+
+\subsection{训练阶段}
+
+\subsection{预测阶段}
+
+\section{结果准确性分析}
+
+\subsection{误差指标}
+
+\subsection{非线性系统性质}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{储备池计算网络设计}
+
+\section{非线性动力系统}
+
+\subsection{常见非线性动力系统}
+
+\subsection{藏本模型}
+
+\section{激活函数的选择}
+
+\subsection{常见激活函数}
+
+\subsection{具体实验结果}
+
+\section{输出函数的选择}
+
+\subsection{常见基函数}
+
+\subsection{具体实验结果}
+
+\section{储备池并联}
+
+\subsection{并联框架}
+
+\subsection{短期预测效果}
+
+\subsection{长期预测效果}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{储备池耦合同步}
+
+\section{储备池的耦合}
+
+\subsection{耦合能力}
+
+\subsection{对于噪声的鲁棒性}
+
+\subsection{基于耦合的预测能力}
+
+\section{储备池的同步现象}
+
+\subsection{同步现象}
+
+\subsection{同步效果分析}
+
+\section{稳健性分析}
+
+\subsection{噪声的种类}
+
+\subsection{噪声对耦合同步产生的影响}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{总结与展望}
+
+\section{讨论}
+
+\section{总结}
+先是奠定了良好的基础, 再在此基础上进行了研究. 
+
+本文将在储备池计算的框架下，对Lorenz系统等混沌系统的预测提出具体的方案，
+并分析不同方案的预测效果的差别，从而总结出对于复杂动力学现象的学习方法，
+加深对于复杂动力系统的认识，提高对于复杂动力学现象的预测能力。
+进一步，论文将展示不同混沌系统的同步结果，分析耦合噪声对同步现象的影响，
+发现同步现象的内在规律。
+\section{展望}
+
+\clearpage
+
+论文大纲：
+
+1. 对储备池网络的研究进行综述，其中涉及到本文的至少有三个方向，
+第一个是一些具体的设置方向，例如储备池的具体设置（稀疏性）等；
+第二个是一些因为部分可观性，引发的预测；
+第三个是储备池之间同步的问题，这里面当然还涉及到很多其他的同步话题。
+
+\bigskip
+
+2. 先从介绍各种非线性动力网络出发，
+介绍储备池网络的设置，包括储备池本身的性质，激活函数，输出函数，
+训练阶段和预测阶段如何进行，结果的误差分析，
+最后再加上一些继承性的储备池网络的介绍。
+
+\bigskip
+
+3. 具体的储备池网络设计部分，
+先从各种激活函数的对比实验开始，再到Kuramoto模型的输出函数的选择，
+最后到储备池并联的网络设计，观察其是否能够有boosting的效果。
+
+\bigskip
+
+4. 耦合同步的内容，
+即首先介绍储备池的耦合同步，分析其能否耦合同步，以及对于噪声的鲁棒性；
+
+部分可观性引发的预测，
+即只观察到部分变量，看能否预测全局变量。这一块感觉创新型有待提高。
+一点小小的创新在于可以预测不同频率的周期性方程。
+
+再借此引发结合考虑，即部分可观性的耦合是否也能否耦合，具体思路是：
+训练了两个部分可观性的储备池，都是输入部分变量，预测全局变量，
+然后将两个储备池的部分部分变量输出进行耦合，判断其预测的全局变量是否也能够耦合。
+
+其具体实践意义可以这么理解，控制部分变量，是的其他不能观察到的变量也能够被控制。
+
+\textcolor{red}{最后看看能不能和预测再挂上钩。非线性系统的性质（Lyapunov)，并分析不同混沌系统耦合后的同步现象。}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{thebibliography}{99}
+\footnotesize
+
+\bibitem{VKMF} V. Krasnopolsky and M. Fox-Rabinovitz, 
+Complex hybrid models combining deterministic and machine learning components for numerical climate modeling and weather prediction,
+\emph{Neural Networks}, 2006, 19(2): 122-134.
+
+\bibitem{YTJK} Y. Tang , J. Kurths , W. Lin , E. Ott and L. Kocarev,
+Introduction to Focus Issue: When machine learning meets complex systems: Networks, chaos, and nonlinear dynamics,
+\emph{Chaos}, 2020, 30(6): 063151.
+
+\bibitem{WSJC} W. Shi, J. Cao, Q. Zhang, Y. Li and L. Xu,
+Edge Computing: Vision and Challenges,
+\emph{IEEE Internet of Things Journal}, 2016, 3(5): 637-646.
+
+\bibitem{QZHM} Q. Zhu, H. Ma and W. Lin,
+Detecting unstable periodic orbits based only on time series: When adaptive delayed feedback control meets reservoir computing,
+\emph{Chaos}, 2019, 29: 093125.
+
+\bibitem{LPTC} L. Pecora and T. Carroll,
+Synchronization in chaotic systems, 
+\emph{Phys Rev Lett}, 1990, 64(8): 821. 
+
+\bibitem{MRAP} M. Rosenblum, A. Pikovsky and J. Kurths,
+Phase synchronization of chaotic oscillators, 
+\emph{Phys Rev Lett}, 1996, 76(11): 1804-7. 
+
+\bibitem{WMTN} W. Maass, T. Natschläger and H. Markram,
+Real-time computing without stable states: a new framework for neural computation based on perturbations, 
+\emph{Neural Computation}, 2002, 14(11): 2531-2560. 
+
+\bibitem{HJ} H. Jaeger, 
+``The `echo state' approach to analysing and training recurrent neural networks'', in
+\emph{Technical Report GMD Report 148, German National Research Center for Information Technology}, 
+2001.
+
+\bibitem{BSDV} B. Schrauwen, D. Verstraeten and J. V. Campenhout, 
+``An overview of reservoir computing: theory, applications and implementations'', in
+\emph{European Symposium on 15th European Symposium on Artificial Neural Networks. Bruges, Belgium}, 
+2007: 471-482.
+
+\bibitem{JPBH} J. Pathak, B. Hunt, M. Girvan, Z. Lu and E. Ott,
+Model-Free Prediction of Large Spatiotemporally Chaotic Systems from Data: A Reservoir Computing Approach, 
+\emph{Phys Rev Lett}, 2018, 120(2): 024102.
+
+\bibitem{JFJJ} J. Fan, J. Jiang, C. Zhang, X. Wang and Y. Lai,
+Long-term prediction of chaotic systems with machine learning, 
+\emph{Phys Rev Research}, 2020, 2(1): 012080.
+
+
+\bibitem{AGAP} A. Griffith, A. Pomerance and D. J. Gauthier,
+Forecasting chaotic systems with very low connectivity reservoir computers,
+\emph{Chaos}, 2019, 29(12): 123108.
+
+\bibitem{TLC} T. L. Carroll,
+Using reservoir computers to distinguish chaotic signals, 
+\emph{Phys Rev E}, 2018, 98:052209.
+
+\bibitem{GBMC} G. Morales, C. Mirasso and M. Soriano,
+Unveiling the role of plasticity rules in reservoir computing,
+\emph{Neurocomputing}, 2021, 461: 705-715.
+
+\bibitem{JMYW} J. Moon, Y. Wu and W. Lu,
+Hierarchical architectures in reservoir computing systems,
+\emph{Neuromorphic Computing and Engineering}, 2021, 1: 014006.
+
+
+
+
+
+
+
+
+
+\bibitem{WASB} W. A. S. Barbosa, A. Griffith, G. E. Rowlands, L. C. G. Govia, G. J. Ribeill, M. Nguyen, T. A. Ohki and D. J. Gauthier,
+Symmetry-aware reservoir computing,
+\emph{Phys Rev Lett}, 2021, 104: 045307.
+
+\bibitem{TWHY} T. Weng, H. Yang, C. Gu, J. Zhang and M. Small,
+Synchronization of chaotic systems and their machine-learning models,
+\emph{Phys Rev E}, 2019, 99(4): 042203.
+
+\bibitem{XCTW} X. Chen, T. Weng, C. Gu and H. Yang,
+Synchronizing hyperchaotic subsystems with a single variable: A reservoir computing approach,
+\emph{Phys A: Statistical Mechanics and its Applications}, 2019, 534: 122273.
+
+\bibitem{SSAM} S. Saha, A. Mishra, S. Ghosh, S. K. Dana and C. Hens,
+Predicting bursting in a complete graph of mixed population through reservoir computing, 
+\emph{Phys Rev Research}, 2020, 2(3): 033338.
+
+\bibitem{WHYZ} W. Hu, Y. Zhang, R. Ma, Q. Dai, J. Yang,
+Synchronization between two linearly coupled reservoir computers, 
+\emph{Chaos, Solitons and Fractals}, 2022, 157: 111882.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\end{thebibliography}
+
+\addcontentsline{toc}{chapter}{参考文献}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter*{\heiti{致谢}}
+
+请对帮助过你完成论文的老师、同学致谢. 也可以在此对您四年大学生活有重要帮助的人致谢.
+
+\textbf{``致谢"本身不作为一章，致谢内容的字体大小不宜与作为标题的``致谢"两字的大小有很大的反差. 这一点尤其请使用word模板的同学注意. } 一般说来, 杂志论文的致谢在文章正文结束、参考文献前(即本模板中它所处的位置);  学位论文的致谢在最后一页，并宜单独成页; 书籍的致谢在序言结尾.
+
+\addcontentsline{toc}{chapter}{致谢}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\end{document}

@@ -1,7 +1,5 @@
-\contentsline {chapter}{\numberline {第一\ignorespaces 章\hspace {0.3em}}绪论}{1}{chapter.1}
+\contentsline {chapter}{\numberline {第\ 一\ 章\hspace {0.3em}}绪论}{1}{chapter.1}
 \contentsline {section}{\numberline {第1节}研究背景及意义}{1}{section.1.1}
-\contentsline {subsection}{\numberline {1.1.}研究的背景}{1}{subsection.1.1.1}
-\contentsline {subsection}{\numberline {1.2.}研究的意义}{1}{subsection.1.1.2}
 \contentsline {section}{\numberline {第2节}国内外的研究现状}{1}{section.1.2}
 \contentsline {section}{\numberline {第3节}论文研究思路}{2}{section.1.3}
 \contentsline {chapter}{\numberline {第二\ignorespaces 章\hspace {0.3em}}储备池计算介绍}{3}{chapter.2}
