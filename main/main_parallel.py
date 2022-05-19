@@ -13,14 +13,14 @@ Capacity_training = 5000
 Capacity_predicting = 2500    
 
 # Parameters
-N = [250, 250, 250, 250]
+N = [500, 500, 500, 500]
 D = 3
 Beta = 1e-4
 Sigma = [1, 1, 1, 1]
-Rou = [0.05, 0.7, 0.15, 0.1]
+Rou = [0.05, 0.05, 0.05, 0.05]
 
 # Function
-Function_activation = [rc.soft_plus, rc.elu, rc.relu, rc.prelu]
+Function_activation = [rc.soft_plus, rc.soft_plus, rc.soft_plus, rc.soft_plus]
 Function_basis_1 = rc.original
 Function_basis_2 = rc.square
 

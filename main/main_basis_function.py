@@ -19,7 +19,7 @@ Capacity_predicting = 3000
 # Parameters
 N = 1000
 D = 10
-D_unobservable = 5
+D_unobservable = 0
 Beta = 1e-4
 Sigma = 1
 Rou = 0.1
@@ -27,7 +27,7 @@ Rou = 0.1
 # Function
 Function_activation = rc.soft_plus
 Function_basis_1 = rc.sin
-Function_basis_2 = rc.cos
+Function_basis_2 = rc.square
 
 # Training Process
 K = 0.7
@@ -39,16 +39,16 @@ Omega[5:8] = 0.4
 Omega[8:] = 0.1
 
 # Path
-Path = f'Result/Unobserved/{D_unobservable}'
+Path = f'Result/Kuramoto/{Function_basis_1.__name__}-{Function_basis_2.__name__}'
 try:
     os.makedirs(Path + '/pic')
 except FileExistsError:
     pass
 
 Result = pd.DataFrame()
-Rou_list = np.linspace(0, 1, 11)[1:]
+Rou_list = np.linspace(0, 1, 21)[1:]
 for Rou in tqdm(Rou_list):
-    for Times in range(1):
+    for Times in range(5):
         Time, Trajectory = \
             Function_trajectory(length=Capacity_training + Capacity_predicting, 
                                 sample=0.01, x0=Start_pos, omega=Omega, k=K)
@@ -87,7 +87,7 @@ for Rou in tqdm(Rou_list):
                               f'/evaluation_{str(Rou)[:4]}_{Times}.svg')
         Result = Result.append(pd.DataFrame(Evaluation, index=[str(Rou)[:4]]))
 
-Result.to_csv(Path + f'/result_unobserved.csv')
+Result.to_csv(Path + f'/result_{Function_basis_1.__name__}-{Function_basis_2.__name__}.csv')
 
 plt.figure(figsize=(10, 5))
 Result_median = pd.DataFrame(np.zeros((len(Rou_list), Result.shape[1])), 
@@ -104,4 +104,4 @@ for indicator in Result.columns:
 plt.savefig(Path + '/Evaluation.svg', format='svg')
 
 Result_median.to_csv(Path + 
-                     f'/result_median_unobserved.csv')
+                     f'/result_median_{Function_basis_1.__name__}-{Function_basis_2.__name__}.csv')
