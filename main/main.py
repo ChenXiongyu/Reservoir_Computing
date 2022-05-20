@@ -4,19 +4,20 @@ import reservoir_computing as rc
 import warnings
 warnings.filterwarnings('ignore')
 
+
 # Trajectory
-Function_trajectory = rc.roessler
+Function_trajectory = rc.lorenz
 
 # Capacity
 Capacity_training = 5000
-Capacity_predicting = 2500
+Capacity_predicting = 222
 
 # Parameters
 N = 2000
 D = 3
 Beta = 1e-4
 Sigma = 1
-Rou = 0.05
+Rou = 0.75
 
 # Function
 Function_activation = rc.soft_plus

@@ -19,10 +19,9 @@ Capacity_predicting = 3000
 # Parameters
 N = 1000
 D = 10
-D_unobservable = 5
+D_unobservable = 8
 Beta = 1e-4
 Sigma = 1
-Rou = 0.1
 
 # Function
 Function_activation = rc.soft_plus

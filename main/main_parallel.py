@@ -10,32 +10,32 @@ warnings.filterwarnings('ignore')
 
 # Capacity
 Capacity_training = 5000
-Capacity_predicting = 2500    
+Capacity_predicting = 222
 
 # Parameters
-N = [500, 500, 500, 500]
+N = [250, 250, 250, 250]
 D = 3
 Beta = 1e-4
 Sigma = [1, 1, 1, 1]
-Rou = [0.05, 0.05, 0.05, 0.05]
+Rou = [0.75, 0.75, 0.75, 0.75]
 
 # Function
-Function_activation = [rc.soft_plus, rc.soft_plus, rc.soft_plus, rc.soft_plus]
+Function_activation = [rc.elu, rc.soft_plus, rc.prelu, rc.relu]
 Function_basis_1 = rc.original
 Function_basis_2 = rc.square
 
 # Path
-Path = f'Result/Parallel/Roessler'
+Path = f'Result/Parallel/Lorenz'
 try:
     os.makedirs(Path + '/pic')
 except FileExistsError:
     pass
 
 Result = pd.DataFrame()
-for Times in tqdm(range(10)):
+for Times in tqdm(range(20)):
     
     # Trajectory
-    Function_trajectory = rc.roessler
+    Function_trajectory = rc.lorenz
     Start_pos = list(np.random.rand(int(D)))
     Time, Trajectory = \
         Function_trajectory(length=Capacity_training + Capacity_predicting, 

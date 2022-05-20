@@ -10,8 +10,9 @@ warnings.filterwarnings('ignore')
 Function_list = [rc.elu, rc.tanh, rc.soft_plus, rc.prelu, rc.relu, rc.sigmoid]
 # Function_list = [rc.elu, rc.soft_plus, rc.prelu, rc.relu]
 for Function_activation in Function_list:
-    Path = f'Result/Activation/Sprott/{Function_activation.__name__}'
+    Path = f'Result/Activation/Lorenz/{Function_activation.__name__}'
     Result = pd.read_csv(Path + f'/result_{Function_activation.__name__}.csv', index_col=0)
+    print((1 - sum(np.sum(np.isnan(Result))) / (Result.shape[0] * Result.shape[1])) * 100)
     Rou_list = np.unique(Result.index)
     # plt.title(f'{Function_activation.__name__}')
     Result_median = pd.DataFrame(np.zeros((len(Rou_list), Result.shape[1])), 
@@ -29,4 +30,5 @@ for Function_activation in Function_list:
         plt.ylabel(indicator.upper())
         plt.legend()
         plt.savefig(indicator.upper() + '.svg', format='svg')
-        
+    print(np.min(Result_median))
+    

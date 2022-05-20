@@ -11,6 +11,7 @@ Root = 'Result/Kuramoto/'
 Path_list = os.listdir(Root)
 for P in Path_list:
     Result = pd.read_csv(Root + P + f'/result_{P}.csv', index_col=0)
+    print((1 - sum(np.sum(np.isnan(Result))) / (Result.shape[0] * Result.shape[1])) * 100)
     Rou_list = np.unique(Result.index)
     # plt.title(f'{Function_activation.__name__}')
     Result_median = pd.DataFrame(np.zeros((len(Rou_list), Result.shape[1])), 
@@ -27,4 +28,5 @@ for P in Path_list:
         plt.ylabel(indicator.upper())
         plt.legend()
         plt.savefig(indicator.upper() + '.svg', format='svg')
+    print(np.min(Result_median))
         
