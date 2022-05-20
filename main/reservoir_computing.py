@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from nolitsa import lyapunov, data
 from tqdm import tqdm
 
+plt.rc('font',family='Times New Roman')
 
 # Data Module
 lorenz = data.lorenz  # Lorenz System
@@ -185,10 +186,13 @@ def cos(array, k=1):
 def plot_trajectory(trajectory_1, trajectory_2=np.array([]), save_path=''):
     fig = plt.figure()
     ax = fig.add_subplot(projection='3d')
-    ax.plot(trajectory_1[:, 0], trajectory_1[:, 1], trajectory_1[:, 2])
+    ax.plot(trajectory_1[:, 0], trajectory_1[:, 1], trajectory_1[:, 2], c='r')
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('Z')
 
     if len(trajectory_2):
-        ax.plot(trajectory_2[:, 0], trajectory_2[:, 1], trajectory_2[:, 2], '-')
+        ax.plot(trajectory_2[:, 0], trajectory_2[:, 1], trajectory_2[:, 2], c='b', ls='--')
 
     if save_path:
         plt.savefig(save_path, format='svg')
