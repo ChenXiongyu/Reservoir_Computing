@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
-# import matplotlib.pyplot as plt
+
 
 import reservoir_computing as rc
 
@@ -10,29 +10,21 @@ warnings.filterwarnings('ignore')
 
 Result_w = pd.DataFrame()
 for W in tqdm(range(11)):
-    # Parameters
-    N = [1000, 1000, 1000, 1000, 1000]
-    Rou = [0.75, 0.75, 0.75, 0.75, 0.75]
-    Function_activation = [rc.soft_plus, rc.soft_plus, rc.soft_plus, rc.soft_plus, rc.soft_plus]
-    Function_basis_1 = [rc.original, rc.original, rc.original, rc.original, rc.original]
-    Function_basis_2 = [rc.square, rc.square, rc.square, rc.square, rc.square]
-
-    # N = [1000, 1000]
-    # Rou = [0.75, 0.75]
-    # Function_activation = [rc.soft_plus, rc.soft_plus]
-    # Function_basis_1 = [rc.original, rc.original]
-    # Function_basis_2 = [rc.square, rc.square]
     
-    Coupled_weights = np.random.rand(len(N))
-    Coupled_weights[0] = W * 0.1
-    Coupled_weights[1:] = \
-        Coupled_weights[1:] / sum(Coupled_weights[1:]) * (1 - W * 0.1)
+    Noise_strength = W * 0.1
+    
+    # Parameters
+    N = [1000, 1000]
+    Rou = [0.75, 0.75]
+    Coupled_weights = np.ones(len(N)) / len(N)
+    Function_activation = [rc.soft_plus, rc.soft_plus]
+    Function_basis_1 = [rc.original, rc.original]
+    Function_basis_2 = [rc.square, rc.square]
     Reverse = False
 
     D = 3
     Beta = 1e-4 * np.ones(len(N))
     Sigma = np.ones(len(N))
-    Noise_strength = 0
 
     # Capacity
     Capacity_training = 5000
@@ -96,7 +88,7 @@ for W in tqdm(range(11)):
             Evaluation_r['Max'] = np.max(Distance[100:, R])
             Evaluation = Evaluation.append(pd.DataFrame(Evaluation_r, index=[R]))
 
-        # rc.plot_trajectory(Output_coupled)
+        # rc.plot_trajectory(Output_coupled, Output_predicting[0])
         Result = Result.append(Evaluation)
 
     # print(Result)
@@ -104,53 +96,34 @@ for W in tqdm(range(11)):
     for R in range(len(N)):
         result = {}
         for indicator in Result.columns:
-            result[indicator] = np.median(Result.loc[R][indicator])
+            r = Result.loc[R][indicator]
+            r = r[~np.isnan(r)]
+            result[indicator] = np.median(r)
+        result['SC'] = 1 - np.sum(np.isnan(Result['RMSE'])) / Result.shape[0]
         Result_median = Result_median.append(pd.DataFrame(result, index=[R]))
     result = np.sum(Result_median)
     result.name = W
     Result_w = Result_w.append(result)
 print(Result_w)
+Result_w['SC'] = Result_w['SC'] / 2
 Result_w.to_csv('coupled.csv')
 
 import matplotlib.pyplot as plt
 plt.rc('font',family='Times New Roman')
 
-plt.figure()
-plt.plot(Result_w['RMSE'])
+
+fig, ax1 = plt.subplots()
 plt.xticks(np.linspace(0, 10, 11), [str(i)[:3] for i in np.linspace(0, 1, 11)])
-plt.xlabel('Weight')
-plt.ylabel('RMSE')
-plt.savefig('coupled.svg')
 
+ax1.plot(Result_w['RMSE'], label='RMSE', c='r')
+ax1.set_xlabel("Noise Strength")
+ax1.set_ylabel("RMSE")
+plt.legend()
 
+ax2 = ax1.twinx()
+ax2.plot(Result_w['SC'], label='SC', c='b')
+ax2.set_xlabel("Noise Strength")
+ax2.set_ylabel("SC")
+plt.legend()
 
-
-
-
-
-
-
-
-
-
-
-# Distance_sum = np.sum(Distance, axis=1)
-# print(Evaluation)
-
-# Possible Trajectory after Synchronization
-# Steps = 100
-
-# plt.figure()
-# plt.title(f'Synchronization after {Steps} Iteration Steps')
-# plt.plot(Distance_sum[Steps:])  # 迭代100步后的结果
-
-# rc.plot_trajectory(Output_coupled)
-
-# Start_pos = list(Output_coupled[Steps, :])
-# _, Trajectory_coupled = \
-#     Function_trajectory(length=Capacity_predicting - Steps, 
-#                         sample=0.01, x0=Start_pos)
-# Distance_coupled, Evaluation_coupled = \
-#     rc.error_evaluate(Output_coupled[Steps:], Trajectory_coupled, 0, plot=True)
-# Evaluation = Evaluation.append(pd.DataFrame(Evaluation_coupled, index=['coupled']))
-# rc.plot_trajectory(Trajectory_coupled, Output_coupled)
+plt.savefig('noise.svg')

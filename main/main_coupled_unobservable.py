@@ -109,7 +109,10 @@ for W in tqdm(list(range(10, -1, -1))):
         
     result = {}
     for indicator in Evaluation.columns:
-        result[indicator] = np.median(Evaluation.loc[0][indicator])
+        r = np.median(Evaluation.loc[0][indicator])
+        for R in range(1, len(N)):
+            r += np.median(Evaluation.loc[R][indicator])
+        result[indicator] = r
     Result_median = Result_median.append(pd.DataFrame(result, index=[W]))
 
 print(Result_median)

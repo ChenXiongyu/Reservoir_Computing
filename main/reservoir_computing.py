@@ -427,10 +427,10 @@ def predict_coupled(w_r, w_i, reservoir_state_predicting, trajectory_predicting,
             function_activation_r = function_activation[r]
             reservoir_state_predicting[r][i, :] = \
                 function_activation_r(np.dot(w_r[r], reservoir_state_predicting[r][i - 1, :]) +
-                                      np.dot(w_i_r, output_coupled[i - 1, :d_r] + 
-                                             noise_strength * np.random.rand(d_r)))
+                                      np.dot(w_i_r, output_coupled[i - 1, :d_r]))
             output_predicting[r][i, :] = f_out[r](reservoir_state_predicting[r][i, :])
-            output_coupled[i, :] += coupled_weights[r] * output_predicting[r][i, :]
+            output_coupled[i, :] += coupled_weights[r] * output_predicting[r][i, :] + \
+                noise_strength * np.random.rand(len(output_predicting[r][i, :]))
 
     return output_coupled, output_predicting
 

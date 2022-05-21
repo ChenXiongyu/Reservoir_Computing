@@ -2,7 +2,7 @@ import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-
+plt.rc('font',family='Times New Roman')
 
 import warnings
 warnings.filterwarnings('ignore')
@@ -23,7 +23,7 @@ for P in Path_list:
             median = Result.loc[Rou][indicator]
             median = np.median(median[~np.isnan(median)])
             Result_median.loc[str(Rou)[:4]][indicator] = median
-        plt.plot(Result_median[indicator], label=P)
+        plt.plot(Result_median[indicator], label=int(np.where(np.array(Path_list) == P)[0]) + 1)
         plt.xlabel('$\\rho$')
         plt.ylabel(indicator.upper())
         plt.legend()
